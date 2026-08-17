@@ -346,6 +346,65 @@
   color: var(--accent);
 }
 
+/* ---------- Extras panel ---------- */
+.workbench__extras h2 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+  text-transform: uppercase;
+}
+
+.extras-panel {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-panel);
+  padding: 20px;
+}
+
+.extras-panel__tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.extras-panel__tab {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 2px;
+}
+
+.extras-panel__tab--active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.converter__textarea {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg-panel-hover);
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  padding: 10px;
+  resize: vertical;
+  width: 100%;
+}
+
+.qr-preview {
+  width: 160px;
+  height: 160px;
+  border-radius: 3px;
+  background: #fff;
+  padding: 8px;
+}
+
 
 /* ---------- Module grid ---------- */
 .workbench__modules h2 {

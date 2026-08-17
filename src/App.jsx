@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, lazy, Suspense } from 'react'
 import './App.css'
 import { categorize } from './lib/fileCategory'
 import ImageConverter from './components/ImageConverter'
+import ExtrasPanel from './components/ExtrasPanel'
 
 const TableConverter = lazy(() => import('./components/TableConverter'))
 const PdfToolkit = lazy(() => import('./components/PdfToolkit'))
@@ -36,8 +37,8 @@ const MODULES = [
   {
     id: 'extras',
     label: 'Extras',
-    tags: ['QR-Code', 'Encoding', 'Hash'],
-    status: 'geplant',
+    tags: ['QR-Code', 'Base64', 'Hash'],
+    status: 'live',
   },
 ]
 
@@ -199,11 +200,16 @@ export default function App() {
           <h2>Module</h2>
           <ModuleGrid />
         </section>
+
+        <section className="workbench__extras">
+          <h2>Extras</h2>
+          <ExtrasPanel />
+        </section>
       </main>
 
       <footer className="footer">
         <span>Läuft vollständig im Browser · keine Uploads</span>
-        <span className="footer__version">v0.5.0 · Phase 3</span>
+        <span className="footer__version">v0.6.0 · Phase 4</span>
       </footer>
     </>
   )

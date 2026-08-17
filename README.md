@@ -5,16 +5,18 @@ Progressive Web App (installierbar, offline-fähig).
 
 ## Status
 
-Aktuell: **v0.5.0** — Phase 1, 2 + 3 fertig. Bilder, Tabellen, PDF, DOCX sowie
-Audio/Video laufen funktionsfähig direkt im Browser; die Drop-Zone erkennt den
-Dateityp automatisch und zeigt das passende Modul.
+Aktuell: **v0.6.0** — Phase 1–4 fertig. Bilder, Tabellen, PDF, DOCX,
+Audio/Video sowie QR-Code/Encoding-Extras laufen funktionsfähig direkt im
+Browser; die Drop-Zone erkennt den Dateityp automatisch und zeigt das
+passende Modul. Die Extras (QR-Code, Encoding) sind als eigener Bereich
+unterhalb der Module immer sichtbar, da sie keine Datei brauchen.
 
 - ✅ Bilder: JPG / PNG / WebP (per `<canvas>`, inkl. optionaler Breiten-Skalierung und Qualitätsregler)
 - ✅ Tabellen: CSV / XLSX / JSON (PapaParse + SheetJS, per Lazy-Load nachgeladen)
 - ✅ PDF: Seiten extrahieren, mehrere PDFs zusammenführen, Seiten rotieren (pdf-lib)
 - ✅ DOCX: Umwandeln in Markdown / HTML / Text (mammoth + turndown)
 - ✅ Audio/Video: Format konvertieren (MP3/WAV/OGG, MP4/WebM), Schneiden, Ton aus Video extrahieren (ffmpeg.wasm)
-- ⏳ Extras (QR-Code, Hintergrund entfernen, Encoding-Tools)
+- ✅ Extras: QR-Code-Generator, Base64/URL-Encoding, SHA-256-Hash
 - ⏳ PWA-Politur (Share-Target, Presets, Verlauf)
 
 > Hinweis: Das `xlsx`-Paket (SheetJS) hat eine bekannte, ungepatchte
@@ -55,6 +57,7 @@ Die URL steht danach unter Settings → Pages bzw. im Actions-Log nach dem erste
 - PDF: pdf-lib (Merge/Split/Rotate, keine echte Verschlüsselung/Passwortschutz möglich)
 - DOCX: mammoth (Einlesen) + turndown (HTML → Markdown)
 - Audio/Video: ffmpeg.wasm (Single-Thread-Core vom CDN, keine COOP/COEP-Header nötig — läuft daher auch auf GitHub Pages)
+- Extras: qrcode (QR-Generierung) + native Web-Crypto-API (SHA-256, kein zusätzliches Paket nötig)
 - Alle Module bis auf Bilder sind per `React.lazy` code-gesplittet (laden nur bei Bedarf nach)
 - Alle Konvertierungen laufen clientseitig (keine Datei verlässt das Gerät)
 
