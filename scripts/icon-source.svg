@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#1C1410"/>
+  <!-- corner brackets forming a "port" / socket mark -->
+  <g stroke="#C9A86A" stroke-width="22" stroke-linecap="round" fill="none">
+    <path d="M 150 130 L 130 130 L 130 150"/>
+    <path d="M 362 130 L 382 130 L 382 150"/>
+    <path d="M 150 382 L 130 382 L 130 362"/>
+    <path d="M 362 382 L 382 382 L 382 362"/>
+  </g>
+  <!-- center: abstract file / signal mark -->
+  <rect x="216" y="196" width="80" height="120" rx="8" fill="none" stroke="#EFE6D8" stroke-width="16"/>
+  <path d="M 216 236 L 296 236" stroke="#C9A86A" stroke-width="16"/>
+  <circle cx="256" cy="360" r="10" fill="#C9A86A"/>
+</svg>

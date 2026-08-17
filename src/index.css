@@ -1,0 +1,61 @@
+:root {
+  /* Farbe — dunkelbraun & beige, ein zurückhaltender Messing-Akzent */
+  --bg: #1C1410;
+  --bg-panel: #2B2018;
+  --bg-panel-hover: #35281A;
+  --border: rgba(201, 168, 106, 0.16);
+  --border-strong: rgba(201, 168, 106, 0.4);
+  --text: #EFE6D8;
+  --text-muted: #A8927D;
+  --accent: #C9A86A;
+  --accent-dim: rgba(201, 168, 106, 0.14);
+
+  /* Typografie */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: radial-gradient(circle at 50% -10%, #241A13 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a { color: inherit; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
