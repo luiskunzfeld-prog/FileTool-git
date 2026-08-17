@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { PDFDocument, degrees } from 'pdf-lib'
+import { addHistoryEntry } from '../lib/history'
 
 const ACTIONS = [
   { value: 'extract', label: 'Seiten extrahieren' },
@@ -92,8 +93,10 @@ export default function PdfToolkit({ file }) {
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
     const url = URL.createObjectURL(blob)
     objectUrlRef.current = url
-    setResult({ url, blob, name: `${stripExtension(file.name)}-${suffix}.pdf` })
+    const name = `${stripExtension(file.name)}-${suffix}.pdf`
+    setResult({ url, blob, name })
     setStatus('done')
+    addHistoryEntry({ module: 'Dokumente', detail: ACTIONS.find((a) => a.value === action)?.label, fileName: name })
   }
 
   const handleRun = async () => {

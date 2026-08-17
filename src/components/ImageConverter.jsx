@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { addHistoryEntry } from '../lib/history'
+import { getPresets, savePreset, deletePreset } from '../lib/presets'
 
 const FORMATS = [
   { value: 'image/png', label: 'PNG', ext: 'png', lossy: false },
@@ -25,6 +27,38 @@ export default function ImageConverter({ file }) {
   const [result, setResult] = useState(null) // { url, blob, width, height }
   const [errorMsg, setErrorMsg] = useState('')
   const objectUrlRef = useRef(null)
+
+  const [presets, setPresets] = useState(() => getPresets())
+  const [selectedPreset, setSelectedPreset] = useState('')
+  const [showSaveInput, setShowSaveInput] = useState(false)
+  const [presetName, setPresetName] = useState('')
+
+  const applyPreset = (name) => {
+    const preset = presets.find((p) => p.name === name)
+    if (!preset) return
+    setTargetFormat(preset.targetFormat)
+    setQuality(preset.quality)
+    setMaxWidth(preset.maxWidth)
+    setSelectedPreset(name)
+    setStatus('idle')
+  }
+
+  const handleSavePreset = () => {
+    const name = presetName.trim()
+    if (!name) return
+    const updated = savePreset(name, { targetFormat, quality, maxWidth })
+    setPresets(updated)
+    setSelectedPreset(name)
+    setPresetName('')
+    setShowSaveInput(false)
+  }
+
+  const handleDeletePreset = () => {
+    if (!selectedPreset) return
+    const updated = deletePreset(selectedPreset)
+    setPresets(updated)
+    setSelectedPreset('')
+  }
 
   useEffect(() => {
     return () => {
@@ -73,6 +107,7 @@ export default function ImageConverter({ file }) {
           objectUrlRef.current = url
           setResult({ url, blob, width, height })
           setStatus('done')
+          addHistoryEntry({ module: 'Bilder', detail: `→ ${selected?.label}`, fileName: downloadName })
         },
         targetFormat,
         selected?.lossy ? quality : undefined,
@@ -92,6 +127,44 @@ export default function ImageConverter({ file }) {
 
   return (
     <div className="converter">
+      <div className="converter__presets">
+        <select
+          className="converter__preset-select"
+          value={selectedPreset}
+          onChange={(e) => (e.target.value ? applyPreset(e.target.value) : setSelectedPreset(''))}
+        >
+          <option value="">Preset laden…</option>
+          {presets.map((p) => (
+            <option key={p.name} value={p.name}>{p.name}</option>
+          ))}
+        </select>
+
+        {selectedPreset && (
+          <button type="button" className="converter__preset-link" onClick={handleDeletePreset}>
+            löschen
+          </button>
+        )}
+
+        {showSaveInput ? (
+          <>
+            <input
+              type="text"
+              className="converter__preset-input"
+              placeholder="Preset-Name"
+              value={presetName}
+              onChange={(e) => setPresetName(e.target.value)}
+            />
+            <button type="button" className="converter__preset-link" onClick={handleSavePreset}>
+              speichern
+            </button>
+          </>
+        ) : (
+          <button type="button" className="converter__preset-link" onClick={() => setShowSaveInput(true)}>
+            als Preset speichern
+          </button>
+        )}
+      </div>
+
       <div className="converter__row">
         <label className="converter__field">
           <span>Zielformat</span>

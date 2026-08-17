@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import mammoth from 'mammoth'
 import TurndownService from 'turndown'
+import { addHistoryEntry } from '../lib/history'
 
 const FORMATS = [
   { value: 'md', label: 'Markdown', ext: 'md', mime: 'text/markdown' },
@@ -58,6 +59,7 @@ export default function DocxConverter({ file }) {
       objectUrlRef.current = url
       setResult({ url, blob, warnings })
       setStatus('done')
+      addHistoryEntry({ module: 'Dokumente', detail: `→ ${selected.label}`, fileName: `${stripExtension(file.name)}.${selected.ext}` })
     } catch (err) {
       setStatus('error')
       setErrorMsg(err.message || 'DOCX konnte nicht gelesen werden.')

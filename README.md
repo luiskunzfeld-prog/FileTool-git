@@ -5,19 +5,20 @@ Progressive Web App (installierbar, offline-fähig).
 
 ## Status
 
-Aktuell: **v0.6.0** — Phase 1–4 fertig. Bilder, Tabellen, PDF, DOCX,
-Audio/Video sowie QR-Code/Encoding-Extras laufen funktionsfähig direkt im
-Browser; die Drop-Zone erkennt den Dateityp automatisch und zeigt das
-passende Modul. Die Extras (QR-Code, Encoding) sind als eigener Bereich
-unterhalb der Module immer sichtbar, da sie keine Datei brauchen.
+Aktuell: **v0.7.0** — Phase 1–5 fertig, damit ist der ursprüngliche Plan
+komplett umgesetzt. Bilder, Tabellen, PDF, DOCX, Audio/Video und Extras
+laufen alle funktionsfähig direkt im Browser; dazu Share-Target, Presets und
+ein Verlauf.
 
-- ✅ Bilder: JPG / PNG / WebP (per `<canvas>`, inkl. optionaler Breiten-Skalierung und Qualitätsregler)
+- ✅ Bilder: JPG / PNG / WebP (per `<canvas>`, inkl. Breiten-Skalierung, Qualitätsregler und speicherbaren Presets)
 - ✅ Tabellen: CSV / XLSX / JSON (PapaParse + SheetJS, per Lazy-Load nachgeladen)
 - ✅ PDF: Seiten extrahieren, mehrere PDFs zusammenführen, Seiten rotieren (pdf-lib)
 - ✅ DOCX: Umwandeln in Markdown / HTML / Text (mammoth + turndown)
 - ✅ Audio/Video: Format konvertieren (MP3/WAV/OGG, MP4/WebM), Schneiden, Ton aus Video extrahieren (ffmpeg.wasm)
 - ✅ Extras: QR-Code-Generator, Base64/URL-Encoding, SHA-256-Hash
-- ⏳ PWA-Politur (Share-Target, Presets, Verlauf)
+- ✅ Share-Target: "Teilen an Filetool" aus anderen Apps (Android/Desktop, nach Installation als PWA)
+- ✅ Presets: Bild-Einstellungen als benannte Presets speichern/laden (Bilder-Modul)
+- ✅ Verlauf: letzte Konvertierungen lokal sichtbar (nur Metadaten, keine Dateien)
 
 > Hinweis: Das `xlsx`-Paket (SheetJS) hat eine bekannte, ungepatchte
 > Sicherheitswarnung (Prototype Pollution / ReDoS) beim Einlesen böswillig
@@ -29,6 +30,10 @@ unterhalb der Module immer sichtbar, da sie keine Datei brauchen.
 > nachgeladen (nicht Teil des eigenen Builds) und danach vom Service Worker
 > gecacht, damit er auch offline wiederverwendbar ist. Erste Nutzung braucht
 > also eine Internetverbindung und etwas Geduld.
+
+> Hinweis: Share-Target funktioniert nur, wenn die App als PWA installiert
+> ist (Homescreen/Desktop-Icon), nicht in einem normalen Browser-Tab — das
+> ist eine Einschränkung der Web-Plattform, keine Filetool-Eigenheit.
 
 ## Setup
 
@@ -58,6 +63,14 @@ Die URL steht danach unter Settings → Pages bzw. im Actions-Log nach dem erste
 - DOCX: mammoth (Einlesen) + turndown (HTML → Markdown)
 - Audio/Video: ffmpeg.wasm (Single-Thread-Core vom CDN, keine COOP/COEP-Header nötig — läuft daher auch auf GitHub Pages)
 - Extras: qrcode (QR-Generierung) + native Web-Crypto-API (SHA-256, kein zusätzliches Paket nötig)
+- Eigener Service Worker (`src/sw.js`, `injectManifest`-Strategie) statt automatisch generiertem — nötig für die Share-Target-Logik
+- Presets & Verlauf: `localStorage`, kein Backend nötig
+
+## Share-Target testen
+
+1. App als PWA installieren (auf dem Handy: "Zum Startbildschirm hinzufügen"; am Desktop: Install-Icon in der Adressleiste).
+2. In einer beliebigen anderen App eine Datei "teilen" (Share-Dialog des Betriebssystems öffnen).
+3. Filetool sollte als Ziel in der Liste erscheinen. Auswählen — die App öffnet sich mit der Datei bereits im passenden Modul.
 - Alle Module bis auf Bilder sind per `React.lazy` code-gesplittet (laden nur bei Bedarf nach)
 - Alle Konvertierungen laufen clientseitig (keine Datei verlässt das Gerät)
 

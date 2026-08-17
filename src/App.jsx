@@ -1,8 +1,10 @@
-import { useCallback, useMemo, useState, lazy, Suspense } from 'react'
+import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from 'react'
 import './App.css'
 import { categorize } from './lib/fileCategory'
+import { hasShareParam, clearShareParam, consumeSharedFile } from './lib/shareTarget'
 import ImageConverter from './components/ImageConverter'
 import ExtrasPanel from './components/ExtrasPanel'
+import HistoryPanel from './components/HistoryPanel'
 
 const TableConverter = lazy(() => import('./components/TableConverter'))
 const PdfToolkit = lazy(() => import('./components/PdfToolkit'))
@@ -75,6 +77,14 @@ function DropPort() {
   const handlePick = useCallback((e) => {
     const picked = e.target.files?.[0]
     if (picked) setFile(picked)
+  }, [])
+
+  useEffect(() => {
+    if (!hasShareParam()) return
+    consumeSharedFile().then((sharedFile) => {
+      if (sharedFile) setFile(sharedFile)
+      clearShareParam()
+    })
   }, [])
 
   const category = useMemo(() => (file ? categorize(file) : null), [file])
@@ -205,11 +215,13 @@ export default function App() {
           <h2>Extras</h2>
           <ExtrasPanel />
         </section>
+
+        <HistoryPanel />
       </main>
 
       <footer className="footer">
         <span>Läuft vollständig im Browser · keine Uploads</span>
-        <span className="footer__version">v0.6.0 · Phase 4</span>
+        <span className="footer__version">v0.7.0 · Phase 5</span>
       </footer>
     </>
   )

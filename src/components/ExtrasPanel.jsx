@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import QRCode from 'qrcode'
+import { addHistoryEntry } from '../lib/history'
 
 const ENCODE_ACTIONS = [
   { value: 'base64-encode', label: 'Base64 kodieren' },
@@ -38,6 +39,7 @@ function QrTool() {
     try {
       const url = await QRCode.toDataURL(text, { width: 320, margin: 1 })
       setDataUrl(url)
+      addHistoryEntry({ module: 'Extras', detail: 'QR-Code erzeugt', fileName: 'qrcode.png' })
     } catch {
       setError('QR-Code konnte nicht erzeugt werden — Text evtl. zu lang.')
       setDataUrl(null)
@@ -88,6 +90,11 @@ function EncodingTool() {
         case 'sha256': setOutput(await sha256Hex(input)); break
         default: break
       }
+      addHistoryEntry({
+        module: 'Extras',
+        detail: ENCODE_ACTIONS.find((a) => a.value === action)?.label,
+        fileName: null,
+      })
     } catch {
       setError('Eingabe konnte nicht verarbeitet werden (ungültiges Format für diese Aktion).')
       setOutput('')

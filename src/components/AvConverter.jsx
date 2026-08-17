@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL, fetchFile } from '@ffmpeg/util'
 import { isVideoFile } from '../lib/fileCategory'
+import { addHistoryEntry } from '../lib/history'
 
 const CORE_VERSION = '0.12.10'
 const CORE_BASE_URL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`
@@ -117,6 +118,7 @@ export default function AvConverter({ file }) {
       objectUrlRef.current = url
       setResult({ url, blob, name: `${stripExtension(file.name)}-${suffix}.${outExt}` })
       setStatus('done')
+      addHistoryEntry({ module: 'Audio · Video', detail: suffix, fileName: `${stripExtension(file.name)}-${suffix}.${outExt}` })
 
       await ffmpeg.deleteFile(inputName)
       await ffmpeg.deleteFile(outputName)

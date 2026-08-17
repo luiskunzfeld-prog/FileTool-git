@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 import { getExtension } from '../lib/fileCategory'
+import { addHistoryEntry } from '../lib/history'
 
 const FORMATS = [
   { value: 'csv', label: 'CSV' },
@@ -87,6 +88,11 @@ export default function TableConverter({ file }) {
       const cols = Object.keys(rows[0] ?? {}).length
       setResult({ url, blob, ext, rowCount: rows.length, colCount: cols })
       setStatus('done')
+      addHistoryEntry({
+        module: 'Tabellen',
+        detail: `→ ${targetFormat.toUpperCase()}`,
+        fileName: `${stripExtension(file.name)}.${ext}`,
+      })
     } catch (err) {
       setStatus('error')
       setErrorMsg(err.message || 'Konvertierung fehlgeschlagen.')
