@@ -5,13 +5,14 @@ Progressive Web App (installierbar, offline-fähig).
 
 ## Status
 
-Aktuell: **v0.3.0** — Phase 1 fertig. Bilder- und Tabellen-Konverter laufen
+Aktuell: **v0.4.0** — Phase 1 + 2 fertig. Bilder, Tabellen, PDF und DOCX laufen
 funktionsfähig direkt im Browser; die Drop-Zone erkennt den Dateityp
 automatisch und zeigt das passende Modul.
 
 - ✅ Bilder: JPG / PNG / WebP (per `<canvas>`, inkl. optionaler Breiten-Skalierung und Qualitätsregler)
 - ✅ Tabellen: CSV / XLSX / JSON (PapaParse + SheetJS, per Lazy-Load nachgeladen)
-- ⏳ Dokumente (PDF/DOCX)
+- ✅ PDF: Seiten extrahieren, mehrere PDFs zusammenführen, Seiten rotieren (pdf-lib)
+- ✅ DOCX: Umwandeln in Markdown / HTML / Text (mammoth + turndown)
 - ⏳ Audio/Video (ffmpeg.wasm)
 - ⏳ Extras (QR-Code, Hintergrund entfernen, Encoding-Tools)
 - ⏳ PWA-Politur (Share-Target, Presets, Verlauf)
@@ -37,7 +38,10 @@ npm run preview    # Build lokal testen
 - `vite-plugin-pwa` (Manifest + Service Worker, autoUpdate)
 - Selbst gehostete Fonts: Fraunces (Display/Serif), Inter (Fließtext), JetBrains Mono (Daten/Labels)
 - Bilder: native `<canvas>`-API (keine zusätzliche Library)
-- Tabellen: PapaParse (CSV) + SheetJS/xlsx (XLSX), per `React.lazy` code-gesplittet
+- Tabellen: PapaParse (CSV) + SheetJS/xlsx (XLSX)
+- PDF: pdf-lib (Merge/Split/Rotate, keine echte Verschlüsselung/Passwortschutz möglich)
+- DOCX: mammoth (Einlesen) + turndown (HTML → Markdown)
+- Alle Module bis auf Bilder sind per `React.lazy` code-gesplittet (laden nur bei Bedarf nach)
 - Alle Konvertierungen laufen clientseitig (keine Datei verlässt das Gerät)
 
 ## Icons neu generieren

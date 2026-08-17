@@ -11,7 +11,9 @@ export function getExtension(file) {
  * Grobe Einordnung einer Datei in eines der Konverter-Module.
  * 'image'   -> per <canvas> konvertierbar (JPG/PNG/WebP)
  * 'table'   -> CSV / XLSX / JSON
- * 'unknown' -> noch kein Modul dafür (Dokumente, Audio/Video, Extras folgen später)
+ * 'pdf'     -> Zusammenführen / Seiten extrahieren / Rotieren (pdf-lib)
+ * 'docx'    -> Umwandeln in Text/HTML/Markdown (mammoth + turndown)
+ * 'unknown' -> noch kein Modul dafür (Audio/Video, Extras folgen später)
  */
 export function categorize(file) {
   const ext = getExtension(file)
@@ -21,6 +23,12 @@ export function categorize(file) {
   }
   if (TABLE_EXTENSIONS.includes(ext)) {
     return 'table'
+  }
+  if (ext === 'pdf') {
+    return 'pdf'
+  }
+  if (ext === 'docx') {
+    return 'docx'
   }
   return 'unknown'
 }

@@ -4,6 +4,8 @@ import { categorize } from './lib/fileCategory'
 import ImageConverter from './components/ImageConverter'
 
 const TableConverter = lazy(() => import('./components/TableConverter'))
+const PdfToolkit = lazy(() => import('./components/PdfToolkit'))
+const DocxConverter = lazy(() => import('./components/DocxConverter'))
 
 const MODULES = [
   {
@@ -16,7 +18,7 @@ const MODULES = [
     id: 'dokumente',
     label: 'Dokumente',
     tags: ['PDF', 'DOCX', 'Merge', 'Split'],
-    status: 'geplant',
+    status: 'live',
   },
   {
     id: 'tabellen',
@@ -114,6 +116,16 @@ function DropPort() {
               <TableConverter file={file} />
             </Suspense>
           )}
+          {category === 'pdf' && (
+            <Suspense fallback={<p className="readout-status">Lade PDF-Modul…</p>}>
+              <PdfToolkit file={file} />
+            </Suspense>
+          )}
+          {category === 'docx' && (
+            <Suspense fallback={<p className="readout-status">Lade DOCX-Modul…</p>}>
+              <DocxConverter file={file} />
+            </Suspense>
+          )}
           {category === 'unknown' && (
             <div className="readout-status">
               Für diesen Dateityp gibt es noch kein Modul — folgt in einer späteren Phase
@@ -185,7 +197,7 @@ export default function App() {
 
       <footer className="footer">
         <span>Läuft vollständig im Browser · keine Uploads</span>
-        <span className="footer__version">v0.3.0 · Phase 1</span>
+        <span className="footer__version">v0.4.0 · Phase 2</span>
       </footer>
     </>
   )
