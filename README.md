@@ -5,15 +5,15 @@ Progressive Web App (installierbar, offline-fähig).
 
 ## Status
 
-Aktuell: **v0.4.0** — Phase 1 + 2 fertig. Bilder, Tabellen, PDF und DOCX laufen
-funktionsfähig direkt im Browser; die Drop-Zone erkennt den Dateityp
-automatisch und zeigt das passende Modul.
+Aktuell: **v0.5.0** — Phase 1, 2 + 3 fertig. Bilder, Tabellen, PDF, DOCX sowie
+Audio/Video laufen funktionsfähig direkt im Browser; die Drop-Zone erkennt den
+Dateityp automatisch und zeigt das passende Modul.
 
 - ✅ Bilder: JPG / PNG / WebP (per `<canvas>`, inkl. optionaler Breiten-Skalierung und Qualitätsregler)
 - ✅ Tabellen: CSV / XLSX / JSON (PapaParse + SheetJS, per Lazy-Load nachgeladen)
 - ✅ PDF: Seiten extrahieren, mehrere PDFs zusammenführen, Seiten rotieren (pdf-lib)
 - ✅ DOCX: Umwandeln in Markdown / HTML / Text (mammoth + turndown)
-- ⏳ Audio/Video (ffmpeg.wasm)
+- ✅ Audio/Video: Format konvertieren (MP3/WAV/OGG, MP4/WebM), Schneiden, Ton aus Video extrahieren (ffmpeg.wasm)
 - ⏳ Extras (QR-Code, Hintergrund entfernen, Encoding-Tools)
 - ⏳ PWA-Politur (Share-Target, Presets, Verlauf)
 
@@ -22,6 +22,11 @@ automatisch und zeigt das passende Modul.
 > präparierter Dateien. Da Filetool ausschließlich lokal mit deinen eigenen
 > Dateien arbeitet, ist das Risiko hier gering — bei Bedarf lässt sich später
 > auf eine gepatchte Version von cdn.sheetjs.com umsteigen.
+
+> Hinweis: Der ffmpeg-Kern (~25 MB) wird beim ersten Gebrauch von unpkg.com
+> nachgeladen (nicht Teil des eigenen Builds) und danach vom Service Worker
+> gecacht, damit er auch offline wiederverwendbar ist. Erste Nutzung braucht
+> also eine Internetverbindung und etwas Geduld.
 
 ## Setup
 
@@ -43,12 +48,13 @@ Die URL steht danach unter Settings → Pages bzw. im Actions-Log nach dem erste
 ## Tech-Stack
 
 - Vite + React
-- `vite-plugin-pwa` (Manifest + Service Worker, autoUpdate)
+- `vite-plugin-pwa` (Manifest + Service Worker, autoUpdate, Runtime-Caching für den ffmpeg-Kern)
 - Selbst gehostete Fonts: Fraunces (Display/Serif), Inter (Fließtext), JetBrains Mono (Daten/Labels)
 - Bilder: native `<canvas>`-API (keine zusätzliche Library)
 - Tabellen: PapaParse (CSV) + SheetJS/xlsx (XLSX)
 - PDF: pdf-lib (Merge/Split/Rotate, keine echte Verschlüsselung/Passwortschutz möglich)
 - DOCX: mammoth (Einlesen) + turndown (HTML → Markdown)
+- Audio/Video: ffmpeg.wasm (Single-Thread-Core vom CDN, keine COOP/COEP-Header nötig — läuft daher auch auf GitHub Pages)
 - Alle Module bis auf Bilder sind per `React.lazy` code-gesplittet (laden nur bei Bedarf nach)
 - Alle Konvertierungen laufen clientseitig (keine Datei verlässt das Gerät)
 

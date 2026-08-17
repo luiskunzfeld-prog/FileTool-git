@@ -6,6 +6,7 @@ import ImageConverter from './components/ImageConverter'
 const TableConverter = lazy(() => import('./components/TableConverter'))
 const PdfToolkit = lazy(() => import('./components/PdfToolkit'))
 const DocxConverter = lazy(() => import('./components/DocxConverter'))
+const AvConverter = lazy(() => import('./components/AvConverter'))
 
 const MODULES = [
   {
@@ -30,7 +31,7 @@ const MODULES = [
     id: 'av',
     label: 'Audio · Video',
     tags: ['MP3', 'MP4', 'Trim'],
-    status: 'geplant',
+    status: 'live',
   },
   {
     id: 'extras',
@@ -126,6 +127,11 @@ function DropPort() {
               <DocxConverter file={file} />
             </Suspense>
           )}
+          {category === 'av' && (
+            <Suspense fallback={<p className="readout-status">Lade Audio/Video-Modul…</p>}>
+              <AvConverter file={file} />
+            </Suspense>
+          )}
           {category === 'unknown' && (
             <div className="readout-status">
               Für diesen Dateityp gibt es noch kein Modul — folgt in einer späteren Phase
@@ -197,7 +203,7 @@ export default function App() {
 
       <footer className="footer">
         <span>Läuft vollständig im Browser · keine Uploads</span>
-        <span className="footer__version">v0.4.0 · Phase 2</span>
+        <span className="footer__version">v0.5.0 · Phase 3</span>
       </footer>
     </>
   )

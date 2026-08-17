@@ -30,6 +30,19 @@ export default defineConfig({
         // App-Shell offline-fähig; große Konverter-Libraries (ffmpeg.wasm etc.)
         // werden pro Feature separat gecacht, sobald sie in späteren Phasen dazukommen.
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            // ffmpeg-Kern (~25 MB) kommt vom CDN statt aus dem eigenen Build —
+            // nach dem ersten Laden dauerhaft cachen, damit er auch offline nutzbar bleibt.
+            urlPattern: ({ url }) => url.origin === 'https://unpkg.com' && url.pathname.includes('@ffmpeg/core'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'ffmpeg-core-cache',
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

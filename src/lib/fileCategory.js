@@ -1,5 +1,7 @@
 const TABLE_EXTENSIONS = ['csv', 'xlsx', 'xls', 'json']
 const UNSUPPORTED_IMAGE_EXTENSIONS = ['svg', 'heic', 'heif']
+const AUDIO_EXTENSIONS = ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac']
+const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'mkv', 'avi']
 
 export function getExtension(file) {
   const name = file.name.toLowerCase()
@@ -13,7 +15,8 @@ export function getExtension(file) {
  * 'table'   -> CSV / XLSX / JSON
  * 'pdf'     -> Zusammenführen / Seiten extrahieren / Rotieren (pdf-lib)
  * 'docx'    -> Umwandeln in Text/HTML/Markdown (mammoth + turndown)
- * 'unknown' -> noch kein Modul dafür (Audio/Video, Extras folgen später)
+ * 'av'      -> Audio/Video: konvertieren, schneiden, Ton extrahieren (ffmpeg.wasm)
+ * 'unknown' -> noch kein Modul dafür (Extras folgen später)
  */
 export function categorize(file) {
   const ext = getExtension(file)
@@ -30,5 +33,16 @@ export function categorize(file) {
   if (ext === 'docx') {
     return 'docx'
   }
+  if (
+    AUDIO_EXTENSIONS.includes(ext) || VIDEO_EXTENSIONS.includes(ext) ||
+    file.type.startsWith('audio/') || file.type.startsWith('video/')
+  ) {
+    return 'av'
+  }
   return 'unknown'
+}
+
+export function isVideoFile(file) {
+  const ext = getExtension(file)
+  return VIDEO_EXTENSIONS.includes(ext) || file.type.startsWith('video/')
 }
