@@ -15,13 +15,13 @@ const MODULES = [
   {
     id: 'bilder',
     label: 'Bilder',
-    tags: ['JPG', 'PNG', 'WebP'],
+    tags: ['JPG', 'PNG', 'WebP', 'PDF'],
     status: 'live',
   },
   {
     id: 'dokumente',
     label: 'Dokumente',
-    tags: ['PDF', 'DOCX', 'Merge', 'Split'],
+    tags: ['PDF', 'DOCX', 'Bilder', 'Text'],
     status: 'live',
   },
   {
@@ -221,7 +221,7 @@ export default function App() {
 
       <footer className="footer">
         <span>Läuft vollständig im Browser · keine Uploads</span>
-        <span className="footer__version">v0.7.0 · Phase 5</span>
+        <span className="footer__version">v0.8.0 · Bidirektional</span>
       </footer>
     </>
   )

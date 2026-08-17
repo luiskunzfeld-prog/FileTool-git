@@ -23,6 +23,19 @@ registerRoute(
   }),
 )
 
+// pdf.js-Worker (~2 MB) ist Teil des eigenen Builds, aber zu groß fürs Precaching auf
+// Verdacht — wird stattdessen beim ersten Gebrauch (PDF → Bilder/Text) gecacht.
+registerRoute(
+  ({ url }) => url.pathname.includes('pdf.worker'),
+  new CacheFirst({
+    cacheName: 'pdf-worker-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  }),
+)
+
 const SHARED_FILE_CACHE = 'shared-files'
 const SHARED_FILE_KEY = '/shared-file'
 

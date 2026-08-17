@@ -5,20 +5,28 @@ Progressive Web App (installierbar, offline-fähig).
 
 ## Status
 
-Aktuell: **v0.7.0** — Phase 1–5 fertig, damit ist der ursprüngliche Plan
-komplett umgesetzt. Bilder, Tabellen, PDF, DOCX, Audio/Video und Extras
-laufen alle funktionsfähig direkt im Browser; dazu Share-Target, Presets und
-ein Verlauf.
+Aktuell: **v0.8.0** — alle Module unterstützen jetzt so viele sinnvolle
+Richtungen wie im Browser technisch sauber machbar sind, plus ein
+Sicherheitsnetz gegen Abstürze/Einfrieren.
 
-- ✅ Bilder: JPG / PNG / WebP (per `<canvas>`, inkl. Breiten-Skalierung, Qualitätsregler und speicherbaren Presets)
-- ✅ Tabellen: CSV / XLSX / JSON (PapaParse + SheetJS, per Lazy-Load nachgeladen)
-- ✅ PDF: Seiten extrahieren, mehrere PDFs zusammenführen, Seiten rotieren (pdf-lib)
-- ✅ DOCX: Umwandeln in Markdown / HTML / Text (mammoth + turndown)
+- ✅ Bilder: JPG / PNG / WebP (beliebig untereinander) **+ mehrere Bilder zu einem PDF zusammenfügen**
+- ✅ Tabellen: CSV / XLSX / JSON, beliebig in jede Richtung
+- ✅ PDF: Zusammenführen, Seiten extrahieren, Rotieren, **in Bilder umwandeln (PNG, pro Seite)**, **Text extrahieren (TXT/DOCX)**
+- ✅ DOCX: **jetzt in beide Richtungen** — DOCX → Markdown/HTML/Text **und** Markdown/Text → DOCX (Überschriften werden erkannt)
 - ✅ Audio/Video: Format konvertieren (MP3/WAV/OGG, MP4/WebM), Schneiden, Ton aus Video extrahieren (ffmpeg.wasm)
 - ✅ Extras: QR-Code-Generator, Base64/URL-Encoding, SHA-256-Hash
-- ✅ Share-Target: "Teilen an Filetool" aus anderen Apps (Android/Desktop, nach Installation als PWA)
-- ✅ Presets: Bild-Einstellungen als benannte Presets speichern/laden (Bilder-Modul)
-- ✅ Verlauf: letzte Konvertierungen lokal sichtbar (nur Metadaten, keine Dateien)
+- ✅ Share-Target, Presets, Verlauf
+
+**Robustheit:**
+- Error Boundary fängt Abstürze einzelner Module ab, statt die ganze App einzufrieren/weiß werden zu lassen — mit "Erneut versuchen"/"Neu laden"
+- Warnhinweis bei sehr großen Audio/Video-Dateien (Speicherlimit des Browsers)
+- Alle Module zeigen durchgängig einen Lade-/Verarbeitungs-Zustand, damit nie der Eindruck entsteht, die App reagiere nicht
+
+**Bewusste Grenzen (technisch im Browser nicht sauber machbar):**
+- Kein direktes **PDF ↔ DOCX** mit voller Formatierung (Layout, Bilder, Tabellen) — dafür bräuchte es eine vollständige Layout-Engine wie LibreOffice, die als WASM-Build zu groß/instabil für eine Web-App wäre. Der Umweg PDF → Text/DOCX bzw. Bild → PDF deckt die häufigsten Fälle ab.
+- Kein PDF-Passwortschutz (pdf-lib unterstützt keine Verschlüsselung)
+- HEIC/SVG als Bildformat werden nicht unterstützt (Browser-Limitierung bzw. bewusst ausgeschlossen)
+- Markdown → DOCX erkennt nur Überschriften, keine Fett-/Kursiv-Formatierung oder Listen
 
 > Hinweis: Das `xlsx`-Paket (SheetJS) hat eine bekannte, ungepatchte
 > Sicherheitswarnung (Prototype Pollution / ReDoS) beim Einlesen böswillig
@@ -26,10 +34,10 @@ ein Verlauf.
 > Dateien arbeitet, ist das Risiko hier gering — bei Bedarf lässt sich später
 > auf eine gepatchte Version von cdn.sheetjs.com umsteigen.
 
-> Hinweis: Der ffmpeg-Kern (~25 MB) wird beim ersten Gebrauch von unpkg.com
-> nachgeladen (nicht Teil des eigenen Builds) und danach vom Service Worker
-> gecacht, damit er auch offline wiederverwendbar ist. Erste Nutzung braucht
-> also eine Internetverbindung und etwas Geduld.
+> Hinweis: Der ffmpeg-Kern (~25 MB) und der pdf.js-Worker (~2 MB) werden beim
+> ersten Gebrauch nachgeladen (nicht Teil des initialen Precache) und danach
+> vom Service Worker gecacht, damit sie auch offline wiederverwendbar sind.
+> Erste Nutzung braucht also eine Internetverbindung.
 
 > Hinweis: Share-Target funktioniert nur, wenn die App als PWA installiert
 > ist (Homescreen/Desktop-Icon), nicht in einem normalen Browser-Tab — das
@@ -59,10 +67,13 @@ Die URL steht danach unter Settings → Pages bzw. im Actions-Log nach dem erste
 - Selbst gehostete Fonts: Fraunces (Display/Serif), Inter (Fließtext), JetBrains Mono (Daten/Labels)
 - Bilder: native `<canvas>`-API (keine zusätzliche Library)
 - Tabellen: PapaParse (CSV) + SheetJS/xlsx (XLSX)
-- PDF: pdf-lib (Merge/Split/Rotate, keine echte Verschlüsselung/Passwortschutz möglich)
-- DOCX: mammoth (Einlesen) + turndown (HTML → Markdown)
+- PDF: pdf-lib (Merge/Split/Rotate, keine echte Verschlüsselung/Passwortschutz möglich) + pdf.js (Rendern zu Bildern, Text-Extraktion)
+- DOCX: mammoth (Lesen) + turndown (HTML → Markdown) + docx (Erzeugen, für Markdown/Text → DOCX)
+- Bild → PDF: pdf-lib (Bilder als Seiten einbetten)
 - Audio/Video: ffmpeg.wasm (Single-Thread-Core vom CDN, keine COOP/COEP-Header nötig — läuft daher auch auf GitHub Pages)
 - Extras: qrcode (QR-Generierung) + native Web-Crypto-API (SHA-256, kein zusätzliches Paket nötig)
+- JSZip: bündelt mehrseitige PDF→Bild-Exporte in eine ZIP-Datei
+- Error Boundary (React) fängt Laufzeitfehler einzelner Module ab
 - Eigener Service Worker (`src/sw.js`, `injectManifest`-Strategie) statt automatisch generiertem — nötig für die Share-Target-Logik
 - Presets & Verlauf: `localStorage`, kein Backend nötig
 

@@ -14,8 +14,9 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.js',
       injectManifest: {
-        // App-Shell offline-fähig; große Konverter-Libraries (ffmpeg.wasm etc.)
-        // werden separat gecacht (siehe Runtime-Caching in src/sw.js).
+        // App-Shell offline-fähig; große Konverter-Libraries (ffmpeg.wasm, pdf.js-Worker)
+        // werden separat gecacht (siehe Runtime-Caching in src/sw.js), statt das
+        // initiale Precaching unnötig aufzublähen.
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
       },
       manifest: {
@@ -43,7 +44,8 @@ export default defineConfig({
                 name: 'file',
                 accept: [
                   'image/*', 'audio/*', 'video/*',
-                  '.pdf', '.docx', '.csv', '.xlsx', '.xls', '.json',
+                  '.pdf', '.docx', '.md', '.markdown', '.txt',
+                  '.csv', '.xlsx', '.xls', '.json',
                 ],
               },
             ],

@@ -1,12 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import mammoth from 'mammoth'
 import TurndownService from 'turndown'
+import { Document, Packer, Paragraph, HeadingLevel } from 'docx'
+import { getExtension } from '../lib/fileCategory'
 import { addHistoryEntry } from '../lib/history'
 
-const FORMATS = [
+const READ_FORMATS = [
   { value: 'md', label: 'Markdown', ext: 'md', mime: 'text/markdown' },
   { value: 'html', label: 'HTML', ext: 'html', mime: 'text/html' },
   { value: 'txt', label: 'Text', ext: 'txt', mime: 'text/plain' },
+]
+
+const HEADING_LEVELS = [
+  HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3,
+  HeadingLevel.HEADING_4, HeadingLevel.HEADING_5, HeadingLevel.HEADING_6,
 ]
 
 function formatBytes(bytes) {
@@ -20,7 +27,24 @@ function stripExtension(name) {
   return dot === -1 ? name : name.slice(0, dot)
 }
 
-export default function DocxConverter({ file }) {
+function lineToParagraph(line, isMarkdown) {
+  if (isMarkdown) {
+    const heading = line.match(/^(#{1,6})\s+(.*)$/)
+    if (heading) {
+      return new Paragraph({ text: heading[2], heading: HEADING_LEVELS[heading[1].length - 1] })
+    }
+  }
+  return new Paragraph({ text: line })
+}
+
+async function buildDocxFromText(text, isMarkdown) {
+  const paragraphs = text.split(/\r?\n/).map((line) => lineToParagraph(line, isMarkdown))
+  const doc = new Document({ sections: [{ children: paragraphs }] })
+  return Packer.toBlob(doc)
+}
+
+// Liest ein bestehendes DOCX aus und wandelt es in Markdown/HTML/Text um.
+function DocxToText({ file }) {
   const [targetFormat, setTargetFormat] = useState('md')
   const [status, setStatus] = useState('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -33,7 +57,7 @@ export default function DocxConverter({ file }) {
     }
   }, [])
 
-  const selected = FORMATS.find((f) => f.value === targetFormat)
+  const selected = READ_FORMATS.find((f) => f.value === targetFormat)
 
   const handleConvert = async () => {
     setStatus('converting')
@@ -72,16 +96,8 @@ export default function DocxConverter({ file }) {
     <div className="converter">
       <label className="converter__field">
         <span>Zielformat</span>
-        <select
-          value={targetFormat}
-          onChange={(e) => {
-            setTargetFormat(e.target.value)
-            setStatus('idle')
-          }}
-        >
-          {FORMATS.map((f) => (
-            <option key={f.value} value={f.value}>{f.label}</option>
-          ))}
+        <select value={targetFormat} onChange={(e) => { setTargetFormat(e.target.value); setStatus('idle') }}>
+          {READ_FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
         </select>
       </label>
 
@@ -109,4 +125,73 @@ export default function DocxConverter({ file }) {
       )}
     </div>
   )
+}
+
+// Baut aus Markdown oder reinem Text ein neues DOCX (Überschriften bei Markdown erkannt,
+// weitergehende Formatierung wie Fett/Kursiv/Listen wird bewusst nicht nachgebildet).
+function TextToDocx({ file, sourceExt }) {
+  const isMarkdown = sourceExt === 'md' || sourceExt === 'markdown'
+  const [status, setStatus] = useState('idle')
+  const [errorMsg, setErrorMsg] = useState('')
+  const [result, setResult] = useState(null)
+  const objectUrlRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+    }
+  }, [])
+
+  const handleConvert = async () => {
+    setStatus('converting')
+    setErrorMsg('')
+    try {
+      const text = await file.text()
+      const blob = await buildDocxFromText(text, isMarkdown)
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+      const url = URL.createObjectURL(blob)
+      objectUrlRef.current = url
+      const name = `${stripExtension(file.name)}.docx`
+      setResult({ url, blob, name })
+      setStatus('done')
+      addHistoryEntry({ module: 'Dokumente', detail: '→ DOCX', fileName: name })
+    } catch (err) {
+      setStatus('error')
+      setErrorMsg(err.message || 'DOCX konnte nicht erzeugt werden.')
+    }
+  }
+
+  return (
+    <div className="converter">
+      <p className="converter__hint">
+        {isMarkdown
+          ? 'Überschriften (#, ##, ###) werden als Word-Überschriften übernommen. Fett/Kursiv/Listen und andere Formatierung werden aktuell nicht nachgebildet.'
+          : 'Jede Zeile wird ein Absatz im neuen Word-Dokument.'}
+      </p>
+      <button className="converter__action" onClick={handleConvert} disabled={status === 'converting'}>
+        {status === 'converting' ? 'Erzeuge DOCX…' : 'In DOCX umwandeln'}
+      </button>
+
+      {status === 'error' && <p className="converter__error">{errorMsg}</p>}
+
+      {status === 'done' && result && (
+        <div className="converter__result">
+          <div className="readout-row">
+            <span className="readout-label">GRÖSSE</span>
+            <span className="readout-value">{formatBytes(result.blob.size)}</span>
+          </div>
+          <a className="converter__download" href={result.url} download={result.name}>
+            {result.name} herunterladen
+          </a>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function DocxConverter({ file }) {
+  const sourceExt = getExtension(file)
+  return sourceExt === 'docx'
+    ? <DocxToText file={file} />
+    : <TextToDocx file={file} sourceExt={sourceExt} />
 }

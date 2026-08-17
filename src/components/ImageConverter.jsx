@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { addHistoryEntry } from '../lib/history'
 import { getPresets, savePreset, deletePreset } from '../lib/presets'
+
+const ImageToPdf = lazy(() => import('./ImageToPdf'))
 
 const FORMATS = [
   { value: 'image/png', label: 'PNG', ext: 'png', lossy: false },
@@ -19,12 +21,12 @@ function stripExtension(name) {
   return dot === -1 ? name : name.slice(0, dot)
 }
 
-export default function ImageConverter({ file }) {
+function FormatConvert({ file }) {
   const [targetFormat, setTargetFormat] = useState('image/webp')
   const [quality, setQuality] = useState(0.85)
   const [maxWidth, setMaxWidth] = useState('')
-  const [status, setStatus] = useState('idle') // idle | converting | done | error
-  const [result, setResult] = useState(null) // { url, blob, width, height }
+  const [status, setStatus] = useState('idle')
+  const [result, setResult] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
   const objectUrlRef = useRef(null)
 
@@ -32,6 +34,14 @@ export default function ImageConverter({ file }) {
   const [selectedPreset, setSelectedPreset] = useState('')
   const [showSaveInput, setShowSaveInput] = useState(false)
   const [presetName, setPresetName] = useState('')
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+    }
+  }, [])
+
+  const selected = FORMATS.find((f) => f.value === targetFormat)
 
   const applyPreset = (name) => {
     const preset = presets.find((p) => p.name === name)
@@ -46,8 +56,7 @@ export default function ImageConverter({ file }) {
   const handleSavePreset = () => {
     const name = presetName.trim()
     if (!name) return
-    const updated = savePreset(name, { targetFormat, quality, maxWidth })
-    setPresets(updated)
+    setPresets(savePreset(name, { targetFormat, quality, maxWidth }))
     setSelectedPreset(name)
     setPresetName('')
     setShowSaveInput(false)
@@ -55,18 +64,9 @@ export default function ImageConverter({ file }) {
 
   const handleDeletePreset = () => {
     if (!selectedPreset) return
-    const updated = deletePreset(selectedPreset)
-    setPresets(updated)
+    setPresets(deletePreset(selectedPreset))
     setSelectedPreset('')
   }
-
-  useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
-    }
-  }, [])
-
-  const selected = FORMATS.find((f) => f.value === targetFormat)
 
   const handleConvert = () => {
     setStatus('converting')
@@ -87,7 +87,6 @@ export default function ImageConverter({ file }) {
       canvas.width = width
       canvas.height = height
       const ctx = canvas.getContext('2d')
-      // JPG kennt keine Transparenz — weißer Hintergrund statt schwarz
       if (targetFormat === 'image/jpeg') {
         ctx.fillStyle = '#FFFFFF'
         ctx.fillRect(0, 0, width, height)
@@ -126,7 +125,7 @@ export default function ImageConverter({ file }) {
   const downloadName = `${stripExtension(file.name)}.${selected?.ext ?? 'out'}`
 
   return (
-    <div className="converter">
+    <>
       <div className="converter__presets">
         <select
           className="converter__preset-select"
@@ -134,17 +133,11 @@ export default function ImageConverter({ file }) {
           onChange={(e) => (e.target.value ? applyPreset(e.target.value) : setSelectedPreset(''))}
         >
           <option value="">Preset laden…</option>
-          {presets.map((p) => (
-            <option key={p.name} value={p.name}>{p.name}</option>
-          ))}
+          {presets.map((p) => <option key={p.name} value={p.name}>{p.name}</option>)}
         </select>
-
         {selectedPreset && (
-          <button type="button" className="converter__preset-link" onClick={handleDeletePreset}>
-            löschen
-          </button>
+          <button type="button" className="converter__preset-link" onClick={handleDeletePreset}>löschen</button>
         )}
-
         {showSaveInput ? (
           <>
             <input
@@ -154,9 +147,7 @@ export default function ImageConverter({ file }) {
               value={presetName}
               onChange={(e) => setPresetName(e.target.value)}
             />
-            <button type="button" className="converter__preset-link" onClick={handleSavePreset}>
-              speichern
-            </button>
+            <button type="button" className="converter__preset-link" onClick={handleSavePreset}>speichern</button>
           </>
         ) : (
           <button type="button" className="converter__preset-link" onClick={() => setShowSaveInput(true)}>
@@ -168,19 +159,10 @@ export default function ImageConverter({ file }) {
       <div className="converter__row">
         <label className="converter__field">
           <span>Zielformat</span>
-          <select
-            value={targetFormat}
-            onChange={(e) => {
-              setTargetFormat(e.target.value)
-              setStatus('idle')
-            }}
-          >
-            {FORMATS.map((f) => (
-              <option key={f.value} value={f.value}>{f.label}</option>
-            ))}
+          <select value={targetFormat} onChange={(e) => { setTargetFormat(e.target.value); setStatus('idle') }}>
+            {FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
         </label>
-
         <label className="converter__field">
           <span>Max. Breite (px, optional)</span>
           <input
@@ -188,10 +170,7 @@ export default function ImageConverter({ file }) {
             inputMode="numeric"
             placeholder="Original"
             value={maxWidth}
-            onChange={(e) => {
-              setMaxWidth(e.target.value)
-              setStatus('idle')
-            }}
+            onChange={(e) => { setMaxWidth(e.target.value); setStatus('idle') }}
           />
         </label>
       </div>
@@ -200,15 +179,9 @@ export default function ImageConverter({ file }) {
         <label className="converter__field converter__field--slider">
           <span>Qualität — {Math.round(quality * 100)}%</span>
           <input
-            type="range"
-            min="0.4"
-            max="1"
-            step="0.05"
+            type="range" min="0.4" max="1" step="0.05"
             value={quality}
-            onChange={(e) => {
-              setQuality(Number(e.target.value))
-              setStatus('idle')
-            }}
+            onChange={(e) => { setQuality(Number(e.target.value)); setStatus('idle') }}
           />
         </label>
       )}
@@ -223,14 +196,36 @@ export default function ImageConverter({ file }) {
         <div className="converter__result">
           <div className="readout-row">
             <span className="readout-label">NEUE GRÖSSE</span>
-            <span className="readout-value">
-              {formatBytes(result.blob.size)} · {result.width}×{result.height}px
-            </span>
+            <span className="readout-value">{formatBytes(result.blob.size)} · {result.width}×{result.height}px</span>
           </div>
           <a className="converter__download" href={result.url} download={downloadName}>
             {downloadName} herunterladen
           </a>
         </div>
+      )}
+    </>
+  )
+}
+
+export default function ImageConverter({ file }) {
+  const [action, setAction] = useState('convert')
+
+  return (
+    <div className="converter">
+      <label className="converter__field">
+        <span>Aktion</span>
+        <select value={action} onChange={(e) => setAction(e.target.value)}>
+          <option value="convert">Format konvertieren</option>
+          <option value="to-pdf">In PDF umwandeln</option>
+        </select>
+      </label>
+
+      {action === 'convert' ? (
+        <FormatConvert file={file} />
+      ) : (
+        <Suspense fallback={<p className="readout-status">Lade PDF-Modul…</p>}>
+          <ImageToPdf file={file} />
+        </Suspense>
       )}
     </div>
   )

@@ -62,6 +62,7 @@ function parseTimeToSeconds(input) {
 
 export default function AvConverter({ file }) {
   const isVideo = isVideoFile(file)
+  const isLarge = file.size > 300 * 1024 * 1024 // 300 MB
   const [action, setAction] = useState('convert')
   const [targetFormat, setTargetFormat] = useState(isVideo ? 'mp4' : 'mp3')
   const [start, setStart] = useState('0:00')
@@ -175,6 +176,14 @@ export default function AvConverter({ file }) {
             <input type="text" value={end} onChange={(e) => { setEnd(e.target.value); setStatus('idle') }} />
           </label>
         </div>
+      )}
+
+      {isLarge && (
+        <p className="converter__hint converter__hint--warn">
+          Große Datei ({formatBytes(file.size)}) — das kann einige Minuten dauern und bei sehr
+          großen Videos am Speicherlimit des Browsers scheitern. Bei Problemen: kürzeren
+          Ausschnitt zuerst schneiden, dann konvertieren.
+        </p>
       )}
 
       <button className="converter__action" onClick={handleRun} disabled={status === 'running'}>
