@@ -32,6 +32,14 @@ npm run build      # Produktions-Build nach /dist
 npm run preview    # Build lokal testen
 ```
 
+## Deployment (GitHub Pages)
+
+Bei jedem Push auf `main` baut eine GitHub-Actions-Workflow (`.github/workflows/deploy.yml`)
+die App automatisch und veröffentlicht sie auf GitHub Pages.
+
+Einmalig aktivieren: Repo → Settings → Pages → "Source" auf **GitHub Actions** stellen.
+Die URL steht danach unter Settings → Pages bzw. im Actions-Log nach dem ersten Durchlauf.
+
 ## Tech-Stack
 
 - Vite + React
