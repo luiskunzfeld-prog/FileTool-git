@@ -425,6 +425,49 @@
   color: var(--accent);
 }
 
+.range-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-row__input {
+  width: 72px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg-panel-hover);
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  padding: 7px 8px;
+}
+
+.range-row__sep {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.range-row__remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.range-row__remove:hover {
+  color: var(--accent);
+}
+
 /* ---------- Extras panel ---------- */
 .workbench__extras h2 {
   font-family: var(--font-mono);

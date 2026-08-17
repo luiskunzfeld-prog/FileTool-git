@@ -27,24 +27,20 @@ function stripExtension(name) {
   return dot === -1 ? name : name.slice(0, dot)
 }
 
-// "1-3,5,8-9" -> [0,1,2,4,7,8] (0-basiert, für pdf-lib)
-function parseRange(input, maxPage) {
+// Wandelt eine Liste von { from, to } in 0-basierte Seitenindizes für pdf-lib um.
+function rangesToIndices(ranges, maxPage) {
   const indices = new Set()
-  const parts = input.split(',').map((p) => p.trim()).filter(Boolean)
-  if (!parts.length) throw new Error('Bitte einen Seitenbereich angeben, z. B. 1-3,5')
+  const filled = ranges.filter((r) => r.from !== '')
+  if (!filled.length) throw new Error('Bitte mindestens eine Seite oder einen Bereich angeben.')
 
-  for (const part of parts) {
-    const rangeMatch = part.match(/^(\d+)-(\d+)$/)
-    const singleMatch = part.match(/^(\d+)$/)
-    if (rangeMatch) {
-      let [, start, end] = rangeMatch.map(Number)
-      if (start > end) [start, end] = [end, start]
-      for (let p = start; p <= end; p++) indices.add(p - 1)
-    } else if (singleMatch) {
-      indices.add(Number(singleMatch[1]) - 1)
-    } else {
-      throw new Error(`Ungültiger Bereich: "${part}"`)
+  for (const r of filled) {
+    let start = Number(r.from)
+    let end = r.to === '' ? start : Number(r.to)
+    if (!Number.isInteger(start) || !Number.isInteger(end)) {
+      throw new Error('Seitenzahlen müssen ganze Zahlen sein.')
     }
+    if (start > end) [start, end] = [end, start]
+    for (let p = start; p <= end; p++) indices.add(p - 1)
   }
 
   const sorted = [...indices].sort((a, b) => a - b)
@@ -67,7 +63,7 @@ async function buildDocxFromPages(pages) {
 export default function PdfToolkit({ file }) {
   const [action, setAction] = useState('extract')
   const [pageCount, setPageCount] = useState(null)
-  const [range, setRange] = useState('')
+  const [ranges, setRanges] = useState([{ id: 1, from: '', to: '' }])
   const [rotation, setRotation] = useState(90)
   const [extraFiles, setExtraFiles] = useState([])
   const [textTarget, setTextTarget] = useState('txt')
@@ -108,6 +104,19 @@ export default function PdfToolkit({ file }) {
     setExtraFiles((prev) => prev.filter((_, i) => i !== idx))
   }
 
+  const addRange = () => {
+    setRanges((prev) => [...prev, { id: Date.now(), from: '', to: '' }])
+  }
+
+  const updateRange = (id, field, value) => {
+    setRanges((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: value } : r)))
+    setStatus('idle')
+  }
+
+  const removeRange = (id) => {
+    setRanges((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev))
+  }
+
   const finish = (blob, name, historyDetail) => {
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
     const url = URL.createObjectURL(blob)
@@ -124,7 +133,7 @@ export default function PdfToolkit({ file }) {
       if (action === 'extract') {
         const srcBytes = await file.arrayBuffer()
         const srcDoc = await PDFDocument.load(srcBytes)
-        const indices = parseRange(range, srcDoc.getPageCount())
+        const indices = rangesToIndices(ranges, srcDoc.getPageCount())
         const outDoc = await PDFDocument.create()
         const pages = await outDoc.copyPages(srcDoc, indices)
         pages.forEach((p) => outDoc.addPage(p))
@@ -215,18 +224,45 @@ export default function PdfToolkit({ file }) {
       )}
 
       {action === 'extract' && (
-        <label className="converter__field">
-          <span>Seitenbereich (z. B. 1-3,5)</span>
-          <input
-            type="text"
-            placeholder="1-3,5"
-            value={range}
-            onChange={(e) => {
-              setRange(e.target.value)
-              setStatus('idle')
-            }}
-          />
-        </label>
+        <div className="converter__field">
+          <span>Seiten (leer lassen bei "Bis" für nur eine Seite)</span>
+          <div className="range-list">
+            {ranges.map((r) => (
+              <div className="range-row" key={r.id}>
+                <input
+                  type="number"
+                  className="range-row__input"
+                  placeholder="Von"
+                  min="1"
+                  value={r.from}
+                  onChange={(e) => updateRange(r.id, 'from', e.target.value)}
+                />
+                <span className="range-row__sep">bis</span>
+                <input
+                  type="number"
+                  className="range-row__input"
+                  placeholder="= Von"
+                  min="1"
+                  value={r.to}
+                  onChange={(e) => updateRange(r.id, 'to', e.target.value)}
+                />
+                {ranges.length > 1 && (
+                  <button
+                    type="button"
+                    className="range-row__remove"
+                    onClick={() => removeRange(r.id)}
+                    aria-label="Bereich entfernen"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <button type="button" className="converter__preset-link" onClick={addRange}>
+            + weiteren Bereich hinzufügen
+          </button>
+        </div>
       )}
 
       {action === 'rotate' && (

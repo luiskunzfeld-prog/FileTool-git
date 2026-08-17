@@ -221,7 +221,7 @@ export default function App() {
 
       <footer className="footer">
         <span>Läuft vollständig im Browser · keine Uploads</span>
-        <span className="footer__version">v0.8.0 · Bidirektional</span>
+        <span className="footer__version">v0.8.1 · Feedback-Fixes</span>
       </footer>
     </>
   )

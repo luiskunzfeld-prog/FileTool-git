@@ -78,6 +78,14 @@ function EncodingTool() {
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
 
+  const ACTION_HINTS = {
+    'base64-encode': 'Wandelt Text in eine Zeichenfolge aus Buchstaben/Zahlen um (z. B. für E-Mail-Anhänge oder Datenübertragung). "Hallo" → "SGFsbG8=". Kein Verschlüsseln — jeder kann es zurückwandeln.',
+    'base64-decode': 'Wandelt eine Base64-kodierte Zeichenfolge zurück in lesbaren Text.',
+    'url-encode': 'Ersetzt Sonderzeichen/Leerzeichen durch %-Codes, damit ein Text sicher in einer Web-Adresse stehen kann.',
+    'url-decode': 'Macht URL-Kodierung wieder rückgängig.',
+    sha256: 'Erzeugt eine eindeutige "Prüfsumme" aus dem Text — nützlich um zu prüfen, ob sich zwei Texte/Dateien unterscheiden. Lässt sich nicht zurückrechnen.',
+  }
+
   const handleRun = async () => {
     setError('')
     setCopied(false)
@@ -118,6 +126,7 @@ function EncodingTool() {
           ))}
         </select>
       </label>
+      <p className="converter__hint">{ACTION_HINTS[action]}</p>
       <label className="converter__field">
         <span>Eingabe</span>
         <textarea

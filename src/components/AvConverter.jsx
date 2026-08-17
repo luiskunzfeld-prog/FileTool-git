@@ -5,7 +5,7 @@ import { isVideoFile } from '../lib/fileCategory'
 import { addHistoryEntry } from '../lib/history'
 
 const CORE_VERSION = '0.12.10'
-const CORE_BASE_URL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/umd`
+const CORE_BASE_URL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`
 
 const VIDEO_FORMATS = [
   { value: 'mp4', label: 'MP4', mime: 'video/mp4' },

@@ -59,3 +59,11 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Verhindert automatisches Reinzoomen beim Fokussieren von Feldern auf dem Handy
+   (iOS/Android zoomen rein, wenn ein Feld eine Schrift unter 16px hat). */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}

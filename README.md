@@ -42,6 +42,11 @@ Sicherheitsnetz gegen Abstürze/Einfrieren.
 > Hinweis: Share-Target funktioniert nur, wenn die App als PWA installiert
 > ist (Homescreen/Desktop-Icon), nicht in einem normalen Browser-Tab — das
 > ist eine Einschränkung der Web-Plattform, keine Filetool-Eigenheit.
+> **Auf iPhone/iPad funktioniert es grundsätzlich nicht:** Safari/iOS
+> unterstützt zwar, dass eine Web-App selbst etwas teilt, aber nicht, dass
+> sie im System-Teilen-Menü als Ziel erscheint. Das hat Apple bis heute
+> nicht implementiert (Stand 2026). Android (Chrome) und teils Windows
+> (Edge) unterstützen es.
 
 ## Setup
 

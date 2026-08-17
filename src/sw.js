@@ -12,8 +12,10 @@ precacheAndRoute(self.__WB_MANIFEST)
 
 // ffmpeg-Kern (~25 MB) kommt vom CDN statt aus dem eigenen Build —
 // nach dem ersten Laden dauerhaft cachen, damit er auch offline nutzbar bleibt.
+// ffmpeg-Kern (~25 MB) kommt vom CDN statt aus dem eigenen Build —
+// nach dem ersten Laden dauerhaft cachen, damit er auch offline nutzbar bleibt.
 registerRoute(
-  ({ url }) => url.origin === 'https://unpkg.com' && url.pathname.includes('@ffmpeg/core'),
+  ({ url }) => url.origin === 'https://cdn.jsdelivr.net' && url.pathname.includes('@ffmpeg/core'),
   new CacheFirst({
     cacheName: 'ffmpeg-core-cache',
     plugins: [
