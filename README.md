@@ -107,6 +107,10 @@ herunterzuladen — die wird für diese reine Browser-App nie gebraucht. Falls
 npm install --ignore-scripts
 ```
 
+Der GitHub-Actions-Workflow installiert deshalb ebenfalls mit `npm ci --ignore-scripts` —
+keines der tatsächlich benötigten Pakete braucht ein Install-Skript, betrifft also nur
+das nie aufgerufene `onnxruntime-node`.
+
 ## Share-Target testen
 
 1. App als PWA installieren (auf dem Handy: "Zum Startbildschirm hinzufügen"; am Desktop: Install-Icon in der Adressleiste).
