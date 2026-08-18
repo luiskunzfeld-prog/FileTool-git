@@ -16,8 +16,10 @@ function getSegmenter(onProgress) {
 }
 
 self.onmessage = async (e) => {
-  const { id, blob } = e.data
+  let id
   try {
+    id = e.data.id
+    const { blob } = e.data
     const segmenter = await getSegmenter((info) => {
       self.postMessage({ id, type: 'progress', info })
     })
