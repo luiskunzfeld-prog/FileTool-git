@@ -5,7 +5,14 @@ Progressive Web App (installierbar, offline-fähig).
 
 ## Status
 
-Aktuell: **v0.9.0** — Komfort, Robustheit und drei neue Funktionen obendrauf.
+Aktuell: **v0.9.1** — drei Bugfixes obendrauf.
+
+**Neu in v0.9.1:**
+- 🐛 Hintergrund-Entfernen stürzte bei großen Fotos ohne Fehlermeldung ab — Bilder werden jetzt vor der Verarbeitung automatisch verkleinert, und ein Worker-Absturz zeigt jetzt eine echte Fehlermeldung statt endlos zu hängen
+- 🐛 CI-Deploy schlug fehl: `onnxruntime-node`-Installationsskript (NuGet-Download) läuft nie gebraucht in reiner Browser-App — Workflow installiert jetzt mit `--ignore-scripts`
+- 🐛 CI-Tests schlugen wegen Node-20/jsdom-Inkompatibilität fehl — Workflow läuft jetzt auf Node 22
+
+**v0.9.0 — Komfort, Robustheit und drei neue Funktionen obendrauf:**
 
 **Neu in dieser Version:**
 - ✅ Bild-Vorschau (Original + Ergebnis) im Bilder-Modul
