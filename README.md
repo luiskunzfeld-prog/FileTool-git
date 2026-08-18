@@ -5,7 +5,14 @@ Progressive Web App (installierbar, offline-fähig).
 
 ## Status
 
-Aktuell: **v0.9.1** — drei Bugfixes obendrauf.
+Aktuell: **v0.9.2** — Accessibility- und Touch-Fixes nach gründlicher Code-Durchsicht.
+
+**Neu in v0.9.2:**
+- ♿ Zoom-Sperre entfernt (`user-scalable=no` verstößt gegen WCAG 1.4.4/1.4.10) — iOS-Auto-Zoom auf Eingabefeldern stattdessen gezielt über 16px-Mindestschriftgröße auf kleinen Bildschirmen verhindert
+- 👆 Zu kleine Tipp-Ziele vergrößert (↑↓×-Buttons in Datei-Listen waren ~24px, jetzt 36px)
+- 🐛 Kleines Memory-Leak beim Stapel-Export behoben (ZIP-Object-URL wurde nie freigegeben)
+
+**v0.9.1 — drei Bugfixes:**
 
 **Neu in v0.9.1:**
 - 🐛 Hintergrund-Entfernen stürzte bei großen Fotos ohne Fehlermeldung ab — Bilder werden jetzt vor der Verarbeitung automatisch verkleinert, und ein Worker-Absturz zeigt jetzt eine echte Fehlermeldung statt endlos zu hängen

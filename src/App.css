@@ -435,8 +435,9 @@
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 2px;
-  min-width: 24px;
-  padding: 2px 6px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 6px 10px;
 }
 
 .converter__filelist-actions button:disabled {
@@ -477,9 +478,11 @@
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 16px;
+  font-size: 20px;
   line-height: 1;
-  padding: 0 4px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
 }
 
 .range-row__remove:hover {

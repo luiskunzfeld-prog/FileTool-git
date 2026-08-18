@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import JSZip from 'jszip'
 import { addHistoryEntry } from '../lib/history'
 
@@ -68,6 +68,13 @@ export default function ImageBatchConverter({ files }) {
   const [progress, setProgress] = useState(0)
   const [errorMsg, setErrorMsg] = useState('')
   const [result, setResult] = useState(null)
+  const objectUrlRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
+    }
+  }, [])
 
   const selected = FORMATS.find((f) => f.value === targetFormat)
 
@@ -93,7 +100,9 @@ export default function ImageBatchConverter({ files }) {
       }
 
       const zipBlob = await zip.generateAsync({ type: 'blob' })
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
       const url = URL.createObjectURL(zipBlob)
+      objectUrlRef.current = url
       const zipName = `filetool-bilder-${selected.ext}.zip`
       setResult({ url, blob: zipBlob, name: zipName })
       setStatus('done')

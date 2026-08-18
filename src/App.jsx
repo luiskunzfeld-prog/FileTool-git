@@ -246,7 +246,7 @@ export default function App() {
 
       <footer className="footer">
         <span>Läuft vollständig im Browser · keine Uploads</span>
-        <span className="footer__version">v0.9.1</span>
+        <span className="footer__version">v0.9.2</span>
       </footer>
     </>
   )

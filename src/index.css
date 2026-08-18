@@ -60,6 +60,15 @@ button {
   }
 }
 
+/* iOS zoomt Eingabefelder automatisch rein, wenn ihre Schrift unter 16px liegt.
+   Statt Zoom komplett zu sperren (schlecht für Sehbehinderte), heben wir nur auf
+   kleinen Bildschirmen die Feldgröße an — Pinch-Zoom bleibt für alle nutzbar. */
+@media (max-width: 480px) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
 /* Verhindert automatisches Reinzoomen beim Fokussieren von Feldern auf dem Handy
    (iOS/Android zoomen rein, wenn ein Feld eine Schrift unter 16px hat). */
 @media (max-width: 768px) {
