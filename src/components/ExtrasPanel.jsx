@@ -150,6 +150,110 @@ function EncodingTool() {
   )
 }
 
+const UNIT_CATEGORIES = {
+  laenge: {
+    label: 'Länge',
+    units: {
+      mm: 0.001, cm: 0.01, m: 1, km: 1000,
+      zoll: 0.0254, fuß: 0.3048, yard: 0.9144, meile: 1609.344,
+    },
+  },
+  gewicht: {
+    label: 'Gewicht',
+    units: { mg: 0.000001, g: 0.001, kg: 1, tonne: 1000, unze: 0.0283495, pfund: 0.453592 },
+  },
+  volumen: {
+    label: 'Volumen',
+    units: { ml: 0.001, l: 1, 'US-Gallone': 3.78541, 'US-Pint': 0.473176 },
+  },
+}
+
+function celsiusTo(unit, c) {
+  if (unit === 'celsius') return c
+  if (unit === 'fahrenheit') return c * (9 / 5) + 32
+  return c + 273.15
+}
+
+function toCelsius(unit, v) {
+  if (unit === 'celsius') return v
+  if (unit === 'fahrenheit') return (v - 32) * (5 / 9)
+  return v - 273.15
+}
+
+function UnitConverter() {
+  const [category, setCategory] = useState('laenge')
+  const [fromUnit, setFromUnit] = useState('m')
+  const [toUnit, setToUnit] = useState('cm')
+  const [value, setValue] = useState('1')
+
+  const isTemp = category === 'temperatur'
+  const units = isTemp ? ['celsius', 'fahrenheit', 'kelvin'] : Object.keys(UNIT_CATEGORIES[category].units)
+  const unitLabel = { celsius: '°C', fahrenheit: '°F', kelvin: 'K' }
+
+  const handleCategoryChange = (next) => {
+    setCategory(next)
+    const firstUnits = next === 'temperatur' ? ['celsius', 'fahrenheit', 'kelvin'] : Object.keys(UNIT_CATEGORIES[next].units)
+    setFromUnit(firstUnits[0])
+    setToUnit(firstUnits[1])
+  }
+
+  const numeric = Number(value.replace(',', '.'))
+  let result = null
+  if (!Number.isNaN(numeric)) {
+    if (isTemp) {
+      result = celsiusTo(toUnit, toCelsius(fromUnit, numeric))
+    } else {
+      const u = UNIT_CATEGORIES[category].units
+      result = (numeric * u[fromUnit]) / u[toUnit]
+    }
+  }
+
+  return (
+    <div className="converter">
+      <label className="converter__field">
+        <span>Kategorie</span>
+        <select value={category} onChange={(e) => handleCategoryChange(e.target.value)}>
+          {Object.entries(UNIT_CATEGORIES).map(([key, c]) => (
+            <option key={key} value={key}>{c.label}</option>
+          ))}
+          <option value="temperatur">Temperatur</option>
+        </select>
+      </label>
+
+      <div className="converter__row">
+        <label className="converter__field">
+          <span>Von</span>
+          <input type="text" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} />
+        </label>
+        <label className="converter__field">
+          <span>Einheit</span>
+          <select value={fromUnit} onChange={(e) => setFromUnit(e.target.value)}>
+            {units.map((u) => <option key={u} value={u}>{isTemp ? unitLabel[u] : u}</option>)}
+          </select>
+        </label>
+      </div>
+
+      <label className="converter__field">
+        <span>Ziel-Einheit</span>
+        <select value={toUnit} onChange={(e) => setToUnit(e.target.value)}>
+          {units.map((u) => <option key={u} value={u}>{isTemp ? unitLabel[u] : u}</option>)}
+        </select>
+      </label>
+
+      {result !== null && (
+        <div className="converter__result">
+          <div className="readout-row">
+            <span className="readout-label">ERGEBNIS</span>
+            <span className="readout-value">
+              {result.toLocaleString('de-DE', { maximumFractionDigits: 6 })} {isTemp ? unitLabel[toUnit] : toUnit}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ExtrasPanel() {
   const [tab, setTab] = useState('qr')
 
@@ -172,8 +276,18 @@ export default function ExtrasPanel() {
         >
           Encoding
         </button>
+        <button
+          role="tab"
+          aria-selected={tab === 'units'}
+          className={`extras-panel__tab${tab === 'units' ? ' extras-panel__tab--active' : ''}`}
+          onClick={() => setTab('units')}
+        >
+          Umrechner
+        </button>
       </div>
-      {tab === 'qr' ? <QrTool /> : <EncodingTool />}
+      {tab === 'qr' && <QrTool />}
+      {tab === 'encode' && <EncodingTool />}
+      {tab === 'units' && <UnitConverter />}
     </div>
   )
 }

@@ -5,48 +5,58 @@ Progressive Web App (installierbar, offline-fähig).
 
 ## Status
 
-Aktuell: **v0.8.0** — alle Module unterstützen jetzt so viele sinnvolle
-Richtungen wie im Browser technisch sauber machbar sind, plus ein
-Sicherheitsnetz gegen Abstürze/Einfrieren.
+Aktuell: **v0.9.0** — Komfort, Robustheit und drei neue Funktionen obendrauf.
 
-- ✅ Bilder: JPG / PNG / WebP (beliebig untereinander) **+ mehrere Bilder zu einem PDF zusammenfügen**
-- ✅ Tabellen: CSV / XLSX / JSON, beliebig in jede Richtung
-- ✅ PDF: Zusammenführen, Seiten extrahieren, Rotieren, **in Bilder umwandeln (PNG, pro Seite)**, **Text extrahieren (TXT/DOCX)**
-- ✅ DOCX: **jetzt in beide Richtungen** — DOCX → Markdown/HTML/Text **und** Markdown/Text → DOCX (Überschriften werden erkannt)
-- ✅ Audio/Video: Format konvertieren (MP3/WAV/OGG, MP4/WebM), Schneiden, Ton aus Video extrahieren (ffmpeg.wasm)
-- ✅ Extras: QR-Code-Generator, Base64/URL-Encoding, SHA-256-Hash
+**Neu in dieser Version:**
+- ✅ Bild-Vorschau (Original + Ergebnis) im Bilder-Modul
+- ✅ Bilder zuschneiden (4 Seiten in %) und rotieren (90/180/270°) — auch als Preset speicherbar
+- ✅ Reihenfolge per ↑↓ änderbar beim PDF-Zusammenführen und Bild→PDF
+- ✅ Stapel-Verarbeitung: mehrere Bilder gleichzeitig reinziehen → gleiche Einstellungen auf alle anwenden → ZIP-Download
+- ✅ Einheiten-Umrechner (Länge, Gewicht, Volumen, Temperatur) in den Extras
+- ✅ **Hintergrund aus Bildern entfernen** (KI, läuft komplett lokal in einem eigenen Hintergrund-Thread)
+- ✅ Zoom beim Antippen von Feldern behoben (Feld-Zoom + Pinch-Zoom komplett gesperrt)
+- ✅ Testsuite (Vitest, 27 Tests) — läuft automatisch vor jedem Deploy, ein fehlgeschlagener Test verhindert das Live-Schalten
+- ✅ Fortschrittsanzeige bei Audio/Video-Konvertierung gefixt (zeigte nach der ersten Datei keinen Fortschritt mehr)
+- ✅ ffmpeg-Kern lädt jetzt von jsdelivr statt unpkg (zuverlässiger, u. a. mit Brave-Shields)
+
+**Modul-Übersicht:**
+- ✅ Bilder: JPG/PNG/WebP (beliebig untereinander), Zuschnitt, Rotation, Presets, Stapel-Verarbeitung, **+ zu PDF zusammenfügen, + Hintergrund entfernen**
+- ✅ Tabellen: CSV/XLSX/JSON, beliebig in jede Richtung
+- ✅ PDF: Zusammenführen (mit Reihenfolge), Seiten extrahieren (mehrere Bereiche gleichzeitig), Rotieren, In Bilder umwandeln, Text extrahieren (TXT/DOCX)
+- ✅ DOCX: beide Richtungen — DOCX → Markdown/HTML/Text und Markdown/Text → DOCX
+- ✅ Audio/Video: Format konvertieren, Schneiden, Ton aus Video extrahieren
+- ✅ Extras: QR-Code, Base64/URL-Encoding, SHA-256-Hash, Einheiten-Umrechner
 - ✅ Share-Target, Presets, Verlauf
 
-**Robustheit:**
-- Error Boundary fängt Abstürze einzelner Module ab, statt die ganze App einzufrieren/weiß werden zu lassen — mit "Erneut versuchen"/"Neu laden"
-- Warnhinweis bei sehr großen Audio/Video-Dateien (Speicherlimit des Browsers)
-- Alle Module zeigen durchgängig einen Lade-/Verarbeitungs-Zustand, damit nie der Eindruck entsteht, die App reagiere nicht
+**Zur Hintergrund-Entfernung — Lizenz-Entscheidung:**
+Die naheliegende Bibliothek (`@imgly/background-removal`) steht unter **AGPL**, was
+bedeutet hätte, dass der komplette Filetool-Quellcode ebenfalls AGPL-kompatibel
+lizenziert sein müsste. Stattdessen verwendet Filetool **Transformers.js**
+(Apache-2.0, von Hugging Face) mit dem **ormbg-Modell** (Apache-2.0) — lizenzsauber,
+läuft komplett lokal, in einem eigenen Web-Worker (blockiert die Seite nicht). Das
+Modell ist auf Fotos mit Personen/klaren Objekten optimiert, nicht auf beliebige
+komplexe Szenen.
 
 **Bewusste Grenzen (technisch im Browser nicht sauber machbar):**
-- Kein direktes **PDF ↔ DOCX** mit voller Formatierung (Layout, Bilder, Tabellen) — dafür bräuchte es eine vollständige Layout-Engine wie LibreOffice, die als WASM-Build zu groß/instabil für eine Web-App wäre. Der Umweg PDF → Text/DOCX bzw. Bild → PDF deckt die häufigsten Fälle ab.
+- Kein direktes **PDF ↔ DOCX** mit voller Formatierung (Layout, Bilder, Tabellen)
 - Kein PDF-Passwortschutz (pdf-lib unterstützt keine Verschlüsselung)
-- HEIC/SVG als Bildformat werden nicht unterstützt (Browser-Limitierung bzw. bewusst ausgeschlossen)
+- HEIC/SVG als Bildformat werden nicht unterstützt
 - Markdown → DOCX erkennt nur Überschriften, keine Fett-/Kursiv-Formatierung oder Listen
+- Bild-Zuschnitt ist prozentual (Ränder abschneiden), kein freies Auswahlrechteck
 
 > Hinweis: Das `xlsx`-Paket (SheetJS) hat eine bekannte, ungepatchte
 > Sicherheitswarnung (Prototype Pollution / ReDoS) beim Einlesen böswillig
 > präparierter Dateien. Da Filetool ausschließlich lokal mit deinen eigenen
-> Dateien arbeitet, ist das Risiko hier gering — bei Bedarf lässt sich später
-> auf eine gepatchte Version von cdn.sheetjs.com umsteigen.
+> Dateien arbeitet, ist das Risiko hier gering.
 
-> Hinweis: Der ffmpeg-Kern (~25 MB) und der pdf.js-Worker (~2 MB) werden beim
-> ersten Gebrauch nachgeladen (nicht Teil des initialen Precache) und danach
-> vom Service Worker gecacht, damit sie auch offline wiederverwendbar sind.
-> Erste Nutzung braucht also eine Internetverbindung.
+> Hinweis: ffmpeg-Kern (~25 MB), pdf.js-Worker (~2 MB) und die onnxruntime-Laufzeit
+> für die Hintergrund-Entfernung (~23 MB, plus Modellgewichte vom Hugging-Face-CDN)
+> werden erst beim ersten Gebrauch nachgeladen und danach vom Service Worker gecacht.
+> Erste Nutzung braucht also jeweils eine Internetverbindung und etwas Geduld.
 
-> Hinweis: Share-Target funktioniert nur, wenn die App als PWA installiert
-> ist (Homescreen/Desktop-Icon), nicht in einem normalen Browser-Tab — das
-> ist eine Einschränkung der Web-Plattform, keine Filetool-Eigenheit.
-> **Auf iPhone/iPad funktioniert es grundsätzlich nicht:** Safari/iOS
-> unterstützt zwar, dass eine Web-App selbst etwas teilt, aber nicht, dass
-> sie im System-Teilen-Menü als Ziel erscheint. Das hat Apple bis heute
-> nicht implementiert (Stand 2026). Android (Chrome) und teils Windows
-> (Edge) unterstützen es.
+> Hinweis: Share-Target funktioniert nur als installierte PWA, nicht im
+> Browser-Tab, und **grundsätzlich nicht auf iPhone/iPad** — Apple hat diesen
+> Teil des Web-Standards bis heute nicht implementiert (Stand 2026).
 
 ## Setup
 
@@ -77,18 +87,31 @@ Die URL steht danach unter Settings → Pages bzw. im Actions-Log nach dem erste
 - Bild → PDF: pdf-lib (Bilder als Seiten einbetten)
 - Audio/Video: ffmpeg.wasm (Single-Thread-Core vom CDN, keine COOP/COEP-Header nötig — läuft daher auch auf GitHub Pages)
 - Extras: qrcode (QR-Generierung) + native Web-Crypto-API (SHA-256, kein zusätzliches Paket nötig)
-- JSZip: bündelt mehrseitige PDF→Bild-Exporte in eine ZIP-Datei
+- Hintergrund entfernen: `@huggingface/transformers` (Apache-2.0) + `onnx-community/ormbg-ONNX`-Modell (Apache-2.0), läuft in einem dedizierten Web Worker
+- JSZip: bündelt mehrseitige/Stapel-Exporte in eine ZIP-Datei
 - Error Boundary (React) fängt Laufzeitfehler einzelner Module ab
+- Vitest: Unit-Tests für die reine Logik (Dateierkennung, PDF-Seitenbereiche, Presets, Verlauf)
 - Eigener Service Worker (`src/sw.js`, `injectManifest`-Strategie) statt automatisch generiertem — nötig für die Share-Target-Logik
 - Presets & Verlauf: `localStorage`, kein Backend nötig
+- Alle Module bis auf Bilder sind per `React.lazy` code-gesplittet (laden nur bei Bedarf nach)
+- Alle Konvertierungen laufen clientseitig (keine Datei verlässt das Gerät)
+
+## Bekannte Installations-Eigenheit
+
+`@huggingface/transformers` hat `onnxruntime-node` als Abhängigkeit, dessen
+Installations-Skript versucht, eine Node-native Binärdatei von NuGet
+herunterzuladen — die wird für diese reine Browser-App nie gebraucht. Falls
+`npm install` mit einem NuGet-Fehler abbricht:
+
+```bash
+npm install --ignore-scripts
+```
 
 ## Share-Target testen
 
 1. App als PWA installieren (auf dem Handy: "Zum Startbildschirm hinzufügen"; am Desktop: Install-Icon in der Adressleiste).
 2. In einer beliebigen anderen App eine Datei "teilen" (Share-Dialog des Betriebssystems öffnen).
 3. Filetool sollte als Ziel in der Liste erscheinen. Auswählen — die App öffnet sich mit der Datei bereits im passenden Modul.
-- Alle Module bis auf Bilder sind per `React.lazy` code-gesplittet (laden nur bei Bedarf nach)
-- Alle Konvertierungen laufen clientseitig (keine Datei verlässt das Gerät)
 
 ## Icons neu generieren
 

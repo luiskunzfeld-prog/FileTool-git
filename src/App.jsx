@@ -10,12 +10,13 @@ const TableConverter = lazy(() => import('./components/TableConverter'))
 const PdfToolkit = lazy(() => import('./components/PdfToolkit'))
 const DocxConverter = lazy(() => import('./components/DocxConverter'))
 const AvConverter = lazy(() => import('./components/AvConverter'))
+const ImageBatchConverter = lazy(() => import('./components/ImageBatchConverter'))
 
 const MODULES = [
   {
     id: 'bilder',
     label: 'Bilder',
-    tags: ['JPG', 'PNG', 'WebP', 'PDF'],
+    tags: ['JPG', 'PNG', 'WebP', 'PDF', 'Freistellen'],
     status: 'live',
   },
   {
@@ -39,7 +40,7 @@ const MODULES = [
   {
     id: 'extras',
     label: 'Extras',
-    tags: ['QR-Code', 'Base64', 'Hash'],
+    tags: ['QR-Code', 'Base64', 'Umrechner'],
     status: 'live',
   },
 ]
@@ -59,6 +60,7 @@ function formatBytes(bytes) {
 function DropPort() {
   const [isOver, setIsOver] = useState(false)
   const [file, setFile] = useState(null)
+  const [batchFiles, setBatchFiles] = useState(null)
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault()
@@ -67,17 +69,27 @@ function DropPort() {
 
   const handleDragLeave = useCallback(() => setIsOver(false), [])
 
+  const acceptFiles = useCallback((fileList) => {
+    const files = Array.from(fileList ?? [])
+    if (files.length === 0) return
+    if (files.length > 1 && files.every((f) => categorize(f) === 'image')) {
+      setBatchFiles(files)
+      setFile(null)
+    } else {
+      setFile(files[0])
+      setBatchFiles(null)
+    }
+  }, [])
+
   const handleDrop = useCallback((e) => {
     e.preventDefault()
     setIsOver(false)
-    const dropped = e.dataTransfer.files?.[0]
-    if (dropped) setFile(dropped)
-  }, [])
+    acceptFiles(e.dataTransfer.files)
+  }, [acceptFiles])
 
   const handlePick = useCallback((e) => {
-    const picked = e.target.files?.[0]
-    if (picked) setFile(picked)
-  }, [])
+    acceptFiles(e.target.files)
+  }, [acceptFiles])
 
   useEffect(() => {
     if (!hasShareParam()) return
@@ -101,12 +113,25 @@ function DropPort() {
       <span className="drop-port__bracket drop-port__bracket--bl" aria-hidden="true" />
       <span className="drop-port__bracket drop-port__bracket--br" aria-hidden="true" />
 
-      {!file ? (
+      {!file && !batchFiles ? (
         <label className="drop-port__prompt">
-          <input type="file" onChange={handlePick} hidden />
+          <input type="file" onChange={handlePick} multiple hidden />
           <span className="drop-port__title">Datei hier ablegen</span>
-          <span className="drop-port__hint">oder klicken zum Auswählen</span>
+          <span className="drop-port__hint">oder klicken zum Auswählen (auch mehrere Bilder gleichzeitig)</span>
         </label>
+      ) : batchFiles ? (
+        <div className="drop-port__readout" key={`batch-${batchFiles.length}-${batchFiles[0].name}`}>
+          <div className="readout-row">
+            <span className="readout-label">STAPEL</span>
+            <span className="readout-value">{batchFiles.length} Bilder</span>
+          </div>
+          <Suspense fallback={<p className="readout-status">Lade Bilder-Modul…</p>}>
+            <ImageBatchConverter files={batchFiles} />
+          </Suspense>
+          <button className="readout-reset" onClick={() => setBatchFiles(null)}>
+            Andere Dateien wählen
+          </button>
+        </div>
       ) : (
         <div className="drop-port__readout" key={file.name + file.size}>
           <div className="readout-row">
@@ -221,7 +246,7 @@ export default function App() {
 
       <footer className="footer">
         <span>Läuft vollständig im Browser · keine Uploads</span>
-        <span className="footer__version">v0.8.1 · Feedback-Fixes</span>
+        <span className="footer__version">v0.9.0</span>
       </footer>
     </>
   )

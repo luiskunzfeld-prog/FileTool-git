@@ -5,6 +5,7 @@ import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url'
 import JSZip from 'jszip'
 import { Document, Packer, Paragraph } from 'docx'
 import { addHistoryEntry } from '../lib/history'
+import { rangesToIndices } from '../lib/pdfRanges'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl
 
@@ -25,29 +26,6 @@ function formatBytes(bytes) {
 function stripExtension(name) {
   const dot = name.lastIndexOf('.')
   return dot === -1 ? name : name.slice(0, dot)
-}
-
-// Wandelt eine Liste von { from, to } in 0-basierte Seitenindizes für pdf-lib um.
-function rangesToIndices(ranges, maxPage) {
-  const indices = new Set()
-  const filled = ranges.filter((r) => r.from !== '')
-  if (!filled.length) throw new Error('Bitte mindestens eine Seite oder einen Bereich angeben.')
-
-  for (const r of filled) {
-    let start = Number(r.from)
-    let end = r.to === '' ? start : Number(r.to)
-    if (!Number.isInteger(start) || !Number.isInteger(end)) {
-      throw new Error('Seitenzahlen müssen ganze Zahlen sein.')
-    }
-    if (start > end) [start, end] = [end, start]
-    for (let p = start; p <= end; p++) indices.add(p - 1)
-  }
-
-  const sorted = [...indices].sort((a, b) => a - b)
-  if (sorted.some((i) => i < 0 || i >= maxPage)) {
-    throw new Error(`Seitenzahl außerhalb des gültigen Bereichs (1–${maxPage}).`)
-  }
-  return sorted
 }
 
 async function buildDocxFromPages(pages) {
@@ -102,6 +80,16 @@ export default function PdfToolkit({ file }) {
 
   const removeExtra = (idx) => {
     setExtraFiles((prev) => prev.filter((_, i) => i !== idx))
+  }
+
+  const moveExtra = (idx, dir) => {
+    setExtraFiles((prev) => {
+      const next = [...prev]
+      const target = idx + dir
+      if (target < 0 || target >= next.length) return prev
+      ;[next[idx], next[target]] = [next[target], next[idx]]
+      return next
+    })
   }
 
   const addRange = () => {
@@ -284,7 +272,7 @@ export default function PdfToolkit({ file }) {
 
       {action === 'merge' && (
         <div className="converter__field">
-          <span>Weitere PDFs (werden nach {file.name} angehängt)</span>
+          <span>Reihenfolge: {file.name} zuerst, dann die Liste unten (mit ↑↓ sortierbar)</span>
           <label className="converter__filepick">
             <input type="file" accept=".pdf" multiple onChange={handleAddExtra} hidden />
             Dateien hinzufügen
@@ -294,7 +282,11 @@ export default function PdfToolkit({ file }) {
               {extraFiles.map((f, i) => (
                 <li key={f.name + i}>
                   <span>{f.name}</span>
-                  <button type="button" onClick={() => removeExtra(i)} aria-label={`${f.name} entfernen`}>×</button>
+                  <span className="converter__filelist-actions">
+                    <button type="button" onClick={() => moveExtra(i, -1)} disabled={i === 0} aria-label={`${f.name} nach oben`}>↑</button>
+                    <button type="button" onClick={() => moveExtra(i, 1)} disabled={i === extraFiles.length - 1} aria-label={`${f.name} nach unten`}>↓</button>
+                    <button type="button" onClick={() => removeExtra(i)} aria-label={`${f.name} entfernen`}>×</button>
+                  </span>
                 </li>
               ))}
             </ul>

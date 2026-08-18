@@ -75,6 +75,16 @@ export default function ImageToPdf({ file }) {
 
   const removeExtra = (idx) => setExtraFiles((prev) => prev.filter((_, i) => i !== idx))
 
+  const moveExtra = (idx, dir) => {
+    setExtraFiles((prev) => {
+      const next = [...prev]
+      const target = idx + dir
+      if (target < 0 || target >= next.length) return prev
+      ;[next[idx], next[target]] = [next[target], next[idx]]
+      return next
+    })
+  }
+
   const handleConvert = async () => {
     setStatus('converting')
     setErrorMsg('')
@@ -96,7 +106,7 @@ export default function ImageToPdf({ file }) {
   return (
     <>
       <div className="converter__field">
-        <span>Weitere Bilder (werden nach {file.name} angehängt)</span>
+        <span>Reihenfolge: {file.name} zuerst, dann die Liste unten (mit ↑↓ sortierbar)</span>
         <label className="converter__filepick">
           <input type="file" accept="image/*" multiple onChange={handleAddExtra} hidden />
           Bilder hinzufügen
@@ -106,7 +116,11 @@ export default function ImageToPdf({ file }) {
             {extraFiles.map((f, i) => (
               <li key={f.name + i}>
                 <span>{f.name}</span>
-                <button type="button" onClick={() => removeExtra(i)} aria-label={`${f.name} entfernen`}>×</button>
+                <span className="converter__filelist-actions">
+                  <button type="button" onClick={() => moveExtra(i, -1)} disabled={i === 0} aria-label={`${f.name} nach oben`}>↑</button>
+                  <button type="button" onClick={() => moveExtra(i, 1)} disabled={i === extraFiles.length - 1} aria-label={`${f.name} nach unten`}>↓</button>
+                  <button type="button" onClick={() => removeExtra(i)} aria-label={`${f.name} entfernen`}>×</button>
+                </span>
               </li>
             ))}
           </ul>

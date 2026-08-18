@@ -38,6 +38,20 @@ registerRoute(
   }),
 )
 
+// onnxruntime-web-Laufzeit (~23 MB, für Hintergrund-Entfernung) — ebenfalls Teil des
+// eigenen Builds, aber zu groß fürs Precaching. Die eigentlichen Modell-Gewichte kommen
+// zusätzlich vom Hugging-Face-CDN und werden vom Browser-eigenen HTTP-Cache gehalten.
+registerRoute(
+  ({ url }) => url.pathname.includes('ort-wasm'),
+  new CacheFirst({
+    cacheName: 'onnx-runtime-cache',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  }),
+)
+
 const SHARED_FILE_CACHE = 'shared-files'
 const SHARED_FILE_KEY = '/shared-file'
 

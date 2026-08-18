@@ -21,15 +21,15 @@ const AUDIO_FORMATS = [
 // geladen wird, auch wenn mehrere Dateien nacheinander bearbeitet werden.
 let sharedFFmpeg = null
 let sharedLoadPromise = null
+let currentProgressHandler = null
 
 function getFFmpeg(onProgress) {
+  currentProgressHandler = onProgress
   if (sharedFFmpeg) return Promise.resolve(sharedFFmpeg)
   if (!sharedLoadPromise) {
     sharedLoadPromise = (async () => {
       const ffmpeg = new FFmpeg()
-      if (onProgress) {
-        ffmpeg.on('progress', ({ progress }) => onProgress(Math.min(progress, 1)))
-      }
+      ffmpeg.on('progress', ({ progress }) => currentProgressHandler?.(Math.min(progress, 1)))
       const coreURL = await toBlobURL(`${CORE_BASE_URL}/ffmpeg-core.js`, 'text/javascript')
       const wasmURL = await toBlobURL(`${CORE_BASE_URL}/ffmpeg-core.wasm`, 'application/wasm')
       await ffmpeg.load({ coreURL, wasmURL })
