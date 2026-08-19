@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import mammoth from 'mammoth'
 import TurndownService from 'turndown'
+import * as XLSX from 'xlsx'
 import { Document, Packer, Paragraph, HeadingLevel } from 'docx'
 import { getExtension } from '../lib/fileCategory'
 import { addHistoryEntry } from '../lib/history'
@@ -9,12 +10,18 @@ const READ_FORMATS = [
   { value: 'md', label: 'Markdown', ext: 'md', mime: 'text/markdown' },
   { value: 'html', label: 'HTML', ext: 'html', mime: 'text/html' },
   { value: 'txt', label: 'Text', ext: 'txt', mime: 'text/plain' },
+  { value: 'xlsx', label: 'Excel (XLSX)', ext: 'xlsx', mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
 ]
 
 const HEADING_LEVELS = [
   HeadingLevel.HEADING_1, HeadingLevel.HEADING_2, HeadingLevel.HEADING_3,
   HeadingLevel.HEADING_4, HeadingLevel.HEADING_5, HeadingLevel.HEADING_6,
 ]
+
+const HEADING_LABELS = {
+  H1: 'Überschrift 1', H2: 'Überschrift 2', H3: 'Überschrift 3',
+  H4: 'Überschrift 4', H5: 'Überschrift 5', H6: 'Überschrift 6',
+}
 
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`
@@ -43,7 +50,53 @@ async function buildDocxFromText(text, isMarkdown) {
   return Packer.toBlob(doc)
 }
 
-// Liest ein bestehendes DOCX aus und wandelt es in Markdown/HTML/Text um.
+// Wandelt das komplette DOCX (nicht nur enthaltene Tabellen) in eine XLSX-Arbeitsmappe um.
+// Blatt "Inhalt": jede Zeile = ein Element aus dem Word-Dokument (Überschrift/Absatz/Liste), in Lesereihenfolge.
+// Jede im Dokument enthaltene Tabelle bekommt zusätzlich ein eigenes Blatt mit den Original-Zellen.
+function buildXlsxFromHtml(html) {
+  const dom = new DOMParser().parseFromString(html, 'text/html')
+  const rows = [['Typ', 'Inhalt']]
+  const tables = []
+
+  for (const node of dom.body.children) {
+    const tag = node.tagName
+    const text = node.textContent.trim()
+
+    if (tag === 'TABLE') {
+      const tableRows = [...node.querySelectorAll('tr')].map((tr) =>
+        [...tr.children].map((cell) => cell.textContent.trim())
+      )
+      tables.push(tableRows)
+      rows.push(['Tabelle', `siehe Blatt "Tabelle ${tables.length}"`])
+    } else if (HEADING_LABELS[tag]) {
+      if (text) rows.push([HEADING_LABELS[tag], text])
+    } else if (tag === 'UL' || tag === 'OL') {
+      for (const li of node.children) {
+        const liText = li.textContent.trim()
+        if (liText) rows.push(['Liste', liText])
+      }
+    } else if (tag === 'P') {
+      if (text) rows.push(['Absatz', text])
+    } else if (text) {
+      rows.push([tag.toLowerCase(), text])
+    }
+  }
+
+  const workbook = XLSX.utils.book_new()
+  const mainSheet = XLSX.utils.aoa_to_sheet(rows)
+  mainSheet['!cols'] = [{ wch: 16 }, { wch: 100 }]
+  XLSX.utils.book_append_sheet(workbook, mainSheet, 'Inhalt')
+
+  tables.forEach((tableRows, i) => {
+    const sheet = XLSX.utils.aoa_to_sheet(tableRows)
+    XLSX.utils.book_append_sheet(workbook, sheet, `Tabelle ${i + 1}`)
+  })
+
+  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+  return new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+}
+
+// Liest ein bestehendes DOCX aus und wandelt es in Markdown/HTML/Text/XLSX um.
 function DocxToText({ file }) {
   const [targetFormat, setTargetFormat] = useState('md')
   const [status, setStatus] = useState('idle')
@@ -64,20 +117,24 @@ function DocxToText({ file }) {
     setErrorMsg('')
     try {
       const arrayBuffer = await file.arrayBuffer()
-      let text
+      let blob
       let warnings = 0
 
       if (targetFormat === 'txt') {
         const { value, messages } = await mammoth.extractRawText({ arrayBuffer })
-        text = value
         warnings = messages.length
+        blob = new Blob([value], { type: selected.mime })
+      } else if (targetFormat === 'xlsx') {
+        const { value: html, messages } = await mammoth.convertToHtml({ arrayBuffer })
+        warnings = messages.length
+        blob = buildXlsxFromHtml(html)
       } else {
         const { value: html, messages } = await mammoth.convertToHtml({ arrayBuffer })
         warnings = messages.length
-        text = targetFormat === 'html' ? html : new TurndownService().turndown(html)
+        const text = targetFormat === 'html' ? html : new TurndownService().turndown(html)
+        blob = new Blob([text], { type: selected.mime })
       }
 
-      const blob = new Blob([text], { type: selected.mime })
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
       const url = URL.createObjectURL(blob)
       objectUrlRef.current = url
